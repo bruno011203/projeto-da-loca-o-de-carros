@@ -1,0 +1,26 @@
+{% if locacoes %}
+<table>
+  <thead><tr><th>#</th><th>Cliente</th><th>Veículo</th><th>Retirada</th><th>Prevista</th><th>Devolução</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for l in locacoes %}
+    {% set atrasada = l.status == 'ativa' and l.data_prevista < hoje %}
+    <tr class="{{ 'atrasada' if atrasada }}">
+      <td>{{ l.id }}</td>
+      <td>{{ l.cliente_nome }}</td>
+      <td>{{ l.marca }} {{ l.modelo }} <small>{{ l.placa }}</small></td>
+      <td>{{ l.data_retirada | data_br }}</td>
+      <td>{{ l.data_prevista | data_br }}</td>
+      <td>{{ l.data_devolucao | data_br }}</td>
+      <td>{{ (l.valor_total if l.valor_total is not none else l.valor_previsto) | moeda }}</td>
+      <td><span class="selo {{ 'atrasada' if atrasada else l.status }}">{{ 'Em atraso' if atrasada else STATUS_LOCACAO[l.status] }}</span></td>
+      <td class="direita">
+        <a href="{{ url_for('locadora.locacao_detalhe', locacao_id=l.id) }}">Ver</a>
+        {% if l.status == 'ativa' %} · <a href="{{ url_for('locadora.locacao_devolucao', locacao_id=l.id) }}">Devolver</a>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">{{ vazio or "Nenhuma locação encontrada." }}</p>
+{% endif %}

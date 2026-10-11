@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Veículos{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Frota</h1>
+  <a class="botao" href="{{ url_for('locadora.veiculo_form') }}">+ Novo veículo</a>
+</div>
+<div class="filtros">
+  <a class="{{ 'ativo' if not status }}" href="{{ url_for('locadora.veiculos') }}">Todos</a>
+  {% for chave, nome in STATUS_VEICULO.items() %}
+    <a class="{{ 'ativo' if status == chave }}" href="{{ url_for('locadora.veiculos', status=chave) }}">{{ nome }}</a>
+  {% endfor %}
+</div>
+{% if veiculos %}
+<table>
+  <thead><tr><th>Placa</th><th>Veículo</th><th>Ano</th><th>Categoria</th><th>Diária</th><th>Km</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for v in veiculos %}
+    <tr>
+      <td><strong>{{ v.placa }}</strong></td>
+      <td>{{ v.marca }} {{ v.modelo }}{% if v.cor %} <small>{{ v.cor }}</small>{% endif %}</td>
+      <td>{{ v.ano }}</td>
+      <td>{{ v.categoria }}</td>
+      <td>{{ v.valor_diaria | moeda }}</td>
+      <td>{{ "{:,}".format(v.km_atual).replace(",", ".") }}</td>
+      <td><span class="selo {{ v.status }}">{{ STATUS_VEICULO[v.status] }}</span></td>
+      <td class="direita">
+        {% if v.status == 'disponivel' %}
+          <a href="{{ url_for('locadora.locacao_nova', veiculo_id=v.id) }}">Locar</a> ·
+        {% endif %}
+        <a href="{{ url_for('locadora.veiculo_form', veiculo_id=v.id) }}">Editar</a>
+        {% if v.status != 'locado' %} ·
+          <form class="inline" method="post" action="{{ url_for('locadora.veiculo_status', veiculo_id=v.id) }}">
+            <input type="hidden" name="status" value="{{ 'disponivel' if v.status == 'manutencao' else 'manutencao' }}">
+            <button class="link">{{ 'Liberar' if v.status == 'manutencao' else 'Manutenção' }}</button>
+          </form> ·
+          <form class="inline" method="post" action="{{ url_for('locadora.veiculo_excluir', veiculo_id=v.id) }}" onsubmit="return confirm('Excluir este veículo?')">
+            <button class="link perigo">Excluir</button>
+          </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhum veículo encontrado.</p>
+{% endif %}
+{% endblock %}

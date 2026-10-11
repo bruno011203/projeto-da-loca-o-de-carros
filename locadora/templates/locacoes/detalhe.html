@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Locação #{{ locacao.id }}{% endblock %}
+{% block conteudo %}
+{% set atrasada = locacao.status == 'ativa' and locacao.data_prevista < hoje %}
+<div class="cabecalho">
+  <h1>Locação #{{ locacao.id }}
+    <span class="selo {{ 'atrasada' if atrasada else locacao.status }}">{{ 'Em atraso' if atrasada else STATUS_LOCACAO[locacao.status] }}</span>
+  </h1>
+  {% if locacao.status == 'ativa' %}
+  <div class="acoes">
+    <a class="botao" href="{{ url_for('locadora.locacao_devolucao', locacao_id=locacao.id) }}">Registrar devolução</a>
+    <form method="post" action="{{ url_for('locadora.locacao_cancelar', locacao_id=locacao.id) }}" onsubmit="return confirm('Cancelar esta locação?')">
+      <button class="botao perigo">Cancelar locação</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+<dl class="detalhes">
+  <dt>Cliente</dt><dd><a href="{{ url_for('locadora.cliente_detalhe', cliente_id=locacao.cliente_id) }}">{{ locacao.cliente_nome }}</a> ({{ locacao.cliente_cpf | cpf }})</dd>
+  <dt>Veículo</dt><dd>{{ locacao.marca }} {{ locacao.modelo }} — {{ locacao.placa }}</dd>
+  <dt>Retirada</dt><dd>{{ locacao.data_retirada | data_br }} · {{ locacao.km_retirada }} km</dd>
+  <dt>Devolução prevista</dt><dd>{{ locacao.data_prevista | data_br }}</dd>
+  <dt>Devolução</dt><dd>{{ locacao.data_devolucao | data_br }}{% if locacao.km_devolucao is not none %} · {{ locacao.km_devolucao }} km ({{ locacao.km_devolucao - locacao.km_retirada }} km rodados){% endif %}</dd>
+  <dt>Diária</dt><dd>{{ locacao.valor_diaria | moeda }}</dd>
+  <dt>Valor previsto</dt><dd>{{ locacao.valor_previsto | moeda }}</dd>
+  {% if locacao.status == 'finalizada' %}
+  <dt>Multa por atraso</dt><dd>{{ locacao.multa | moeda }}</dd>
+  <dt>Valor total</dt><dd><strong>{{ locacao.valor_total | moeda }}</strong></dd>
+  {% endif %}
+  {% if locacao.observacoes %}<dt>Observações</dt><dd>{{ locacao.observacoes }}</dd>{% endif %}
+</dl>
+{% endblock %}

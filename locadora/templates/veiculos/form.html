@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar' if veiculo.id else 'Novo' }} veículo{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Editar' if veiculo.id else 'Novo' }} veículo</h1>
+<form method="post" class="formulario">
+  <div class="linha">
+    <label>Placa *<input name="placa" value="{{ veiculo.placa or '' }}" placeholder="ABC1D23" required></label>
+    <label>Marca *<input name="marca" value="{{ veiculo.marca or '' }}" required></label>
+    <label>Modelo *<input name="modelo" value="{{ veiculo.modelo or '' }}" required></label>
+  </div>
+  <div class="linha">
+    <label>Ano *<input type="number" name="ano" value="{{ veiculo.ano or '' }}" required></label>
+    <label>Cor<input name="cor" value="{{ veiculo.cor or '' }}"></label>
+    <label>Categoria *
+      <select name="categoria" required>
+        {% for c in CATEGORIAS %}<option {{ 'selected' if veiculo.categoria == c }}>{{ c }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="linha">
+    <label>Valor da diária (R$) *<input type="number" step="0.01" min="0.01" name="valor_diaria" value="{{ veiculo.valor_diaria or '' }}" required></label>
+    <label>Quilometragem atual<input type="number" min="0" name="km_atual" value="{{ veiculo.km_atual or 0 }}"></label>
+  </div>
+  <div class="acoes">
+    <button type="submit" class="botao">Salvar</button>
+    <a class="botao secundario" href="{{ url_for('locadora.veiculos') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

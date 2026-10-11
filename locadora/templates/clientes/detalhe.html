@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cliente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>{{ cliente.nome }}</h1>
+  <div class="acoes">
+    <a class="botao" href="{{ url_for('locadora.locacao_nova', cliente_id=cliente.id) }}">+ Nova locação</a>
+    <a class="botao secundario" href="{{ url_for('locadora.cliente_form', cliente_id=cliente.id) }}">Editar</a>
+  </div>
+</div>
+<dl class="detalhes">
+  <dt>CPF</dt><dd>{{ cliente.cpf | cpf }}</dd>
+  <dt>CNH</dt><dd>{{ cliente.cnh }} — válida até {{ cliente.validade_cnh | data_br }}</dd>
+  <dt>Telefone</dt><dd>{{ cliente.telefone or '—' }}</dd>
+  <dt>E-mail</dt><dd>{{ cliente.email or '—' }}</dd>
+  <dt>Endereço</dt><dd>{{ cliente.endereco or '—' }}</dd>
+</dl>
+<h2>Histórico de locações</h2>
+{% with locacoes=historico, vazio="Este cliente ainda não fez locações." %}{% include "locacoes/_tabela.html" %}{% endwith %}
+{% endblock %}

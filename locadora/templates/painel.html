@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Painel</h1>
+<div class="cards">
+  <div class="card"><span>Veículos disponíveis</span><strong>{{ resumo.disponiveis }} / {{ resumo.veiculos }}</strong></div>
+  <div class="card"><span>Veículos locados</span><strong>{{ resumo.locados }}</strong></div>
+  <div class="card"><span>Em manutenção</span><strong>{{ resumo.manutencao }}</strong></div>
+  <div class="card"><span>Clientes</span><strong>{{ resumo.clientes }}</strong></div>
+  <div class="card"><span>Locações ativas</span><strong>{{ resumo.ativas }}</strong></div>
+  <div class="card {{ 'perigo' if resumo.atrasadas }}"><span>Locações em atraso</span><strong>{{ resumo.atrasadas }}</strong></div>
+  <div class="card"><span>Faturamento do mês</span><strong>{{ resumo.faturamento_mes | moeda }}</strong></div>
+</div>
+
+<div class="acoes">
+  <a class="botao" href="{{ url_for('locadora.locacao_nova') }}">+ Nova locação</a>
+  <a class="botao secundario" href="{{ url_for('locadora.cliente_form') }}">+ Novo cliente</a>
+  <a class="botao secundario" href="{{ url_for('locadora.veiculo_form') }}">+ Novo veículo</a>
+</div>
+
+<h2>Locações em atraso</h2>
+{% with locacoes=atrasadas, vazio="Nenhuma locação em atraso." %}{% include "locacoes/_tabela.html" %}{% endwith %}
+
+<h2>Devoluções previstas para os próximos 3 dias</h2>
+{% with locacoes=proximas, vazio="Nenhuma devolução prevista." %}{% include "locacoes/_tabela.html" %}{% endwith %}
+{% endblock %}

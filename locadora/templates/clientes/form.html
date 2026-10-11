@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar' if cliente.id else 'Novo' }} cliente{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Editar' if cliente.id else 'Novo' }} cliente</h1>
+<form method="post" class="formulario">
+  <label>Nome completo *<input name="nome" value="{{ cliente.nome or '' }}" required></label>
+  <div class="linha">
+    <label>CPF *<input name="cpf" value="{{ cliente.cpf | cpf if cliente.cpf else '' }}" placeholder="000.000.000-00" required></label>
+    <label>CNH *<input name="cnh" value="{{ cliente.cnh or '' }}" required></label>
+    <label>Validade da CNH *<input type="date" name="validade_cnh" value="{{ cliente.validade_cnh or '' }}" required></label>
+  </div>
+  <div class="linha">
+    <label>Telefone<input name="telefone" value="{{ cliente.telefone or '' }}"></label>
+    <label>E-mail<input type="email" name="email" value="{{ cliente.email or '' }}"></label>
+  </div>
+  <label>Endereço<input name="endereco" value="{{ cliente.endereco or '' }}"></label>
+  <div class="acoes">
+    <button type="submit" class="botao">Salvar</button>
+    <a class="botao secundario" href="{{ url_for('locadora.clientes') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

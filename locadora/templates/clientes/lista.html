@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Clientes{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Clientes</h1>
+  <a class="botao" href="{{ url_for('locadora.cliente_form') }}">+ Novo cliente</a>
+</div>
+<form class="busca" method="get">
+  <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome ou CPF">
+  <button class="botao secundario">Buscar</button>
+</form>
+{% if clientes %}
+<table>
+  <thead><tr><th>Nome</th><th>CPF</th><th>CNH (validade)</th><th>Telefone</th><th>E-mail</th><th></th></tr></thead>
+  <tbody>
+  {% for c in clientes %}
+    <tr>
+      <td><a href="{{ url_for('locadora.cliente_detalhe', cliente_id=c.id) }}">{{ c.nome }}</a></td>
+      <td>{{ c.cpf | cpf }}</td>
+      <td>{{ c.cnh }} ({{ c.validade_cnh | data_br }})</td>
+      <td>{{ c.telefone or '—' }}</td>
+      <td>{{ c.email or '—' }}</td>
+      <td class="direita">
+        <a href="{{ url_for('locadora.cliente_form', cliente_id=c.id) }}">Editar</a> ·
+        <form class="inline" method="post" action="{{ url_for('locadora.cliente_excluir', cliente_id=c.id) }}" onsubmit="return confirm('Excluir este cliente?')">
+          <button class="link perigo">Excluir</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhum cliente encontrado.</p>
+{% endif %}
+{% endblock %}
