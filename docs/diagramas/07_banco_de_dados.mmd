@@ -1,0 +1,60 @@
+erDiagram
+    AUTH_USER ||--|| LOCACAO_FUNCIONARIO : "usuario_id"
+    LOCACAO_CATEGORIA ||--o{ LOCACAO_VEICULO : "categoria_id"
+    LOCACAO_CLIENTE ||--o{ LOCACAO_RESERVA : "cliente_id"
+    LOCACAO_VEICULO ||--o{ LOCACAO_RESERVA : "veiculo_id"
+    LOCACAO_RESERVA |o--o| LOCACAO_LOCACAO : "reserva_id"
+    LOCACAO_CLIENTE ||--o{ LOCACAO_LOCACAO : "cliente_id"
+    LOCACAO_VEICULO ||--o{ LOCACAO_LOCACAO : "veiculo_id"
+    LOCACAO_FUNCIONARIO ||--o{ LOCACAO_LOCACAO : "atendente_id"
+    LOCACAO_CLIENTE {
+        int id PK
+        varchar nome
+        varchar cpf UK
+        date data_nascimento
+        varchar cnh_numero
+        varchar cnh_categoria
+        date cnh_validade
+        bool ativo
+    }
+    LOCACAO_CATEGORIA {
+        int id PK
+        varchar nome UK
+        decimal valor_diaria
+        decimal valor_caucao
+        decimal valor_tanque_cheio
+    }
+    LOCACAO_VEICULO {
+        int id PK
+        varchar placa UK
+        varchar chassi UK
+        int ano_fabricacao
+        int km_atual
+        varchar status
+        int categoria_id FK
+    }
+    LOCACAO_RESERVA {
+        int id PK
+        varchar codigo UK
+        datetime retirada_prevista
+        datetime devolucao_prevista
+        decimal valor_estimado
+        varchar status
+    }
+    LOCACAO_LOCACAO {
+        int id PK
+        int reserva_id FK
+        datetime data_retirada
+        datetime devolucao_prevista
+        datetime devolucao_real
+        int km_saida
+        int km_retorno
+        decimal valor_diaria_aplicado
+        decimal valor_total
+        varchar status
+    }
+    LOCACAO_FUNCIONARIO {
+        int id PK
+        varchar matricula UK
+        varchar perfil
+    }

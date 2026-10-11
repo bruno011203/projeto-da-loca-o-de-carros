@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor A as Atendente
+    participant V as views.devolucao
+    participant O as operacoes
+    participant R as rules
+    participant S as services
+    participant DB as Banco (ORM)
+    A->>V: informa data/hora, km e combustível de retorno
+    V->>O: apurar(locacao, combustivel, devolucao_real)
+    O->>S: apurar_devolucao(...)
+    S-->>O: diárias, atraso, multa, combustível, total
+    O-->>V: extrato
+    V-->>A: exibe extrato para conferência
+    A->>V: confirmar devolução
+    V->>O: registrar_devolucao(locacao, km, combustivel, avaria)
+    O->>DB: SELECT ... FOR UPDATE (locação)
+    alt locação FINALIZADA
+        O-->>V: RegraNegocioError RN19
+    else em andamento ou atrasada
+        O->>R: validar_km_retorno(km_saida, km_retorno) [RN16]
+        O->>S: apurar_devolucao(...) [RN17]
+        O->>DB: UPDATE locação → FINALIZADA, valores
+        alt houve avaria
+            O->>DB: UPDATE veículo → MANUTENCAO [RN18]
+        else sem avaria
+            O->>DB: UPDATE veículo → DISPONIVEL [RN18]
+        end
+        O-->>V: extrato final
+        V-->>A: "Devolução registrada" + caução devolvida/retida
+    end

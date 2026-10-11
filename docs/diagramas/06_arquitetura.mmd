@@ -1,0 +1,28 @@
+flowchart TB
+    U["Navegador<br/>(Bootstrap 5 via CDN)"]
+    subgraph Django["Django 5.2 — monolito"]
+        direction TB
+        URL["config/urls.py · locacao/urls.py<br/>roteamento"]
+        AUTH["django.contrib.auth<br/>login / sessão"]
+        ADM["Django Admin<br/>UC01 · UC02"]
+        VIEW["views.py + templates<br/>apresentação"]
+        FORM["forms.py<br/>validação de entrada"]
+        OP["operacoes.py<br/>casos de uso UC03–UC05<br/>transações"]
+        subgraph Dominio["Domínio puro"]
+            RULES["rules.py<br/>RN01–RN19"]
+            SERV["services.py<br/>5 fórmulas de cálculo"]
+        end
+        MOD["models.py · enums.py<br/>ORM"]
+    end
+    DB[("SQLite<br/>db.sqlite3")]
+    U -->|HTTP| URL
+    URL --> AUTH
+    URL --> VIEW
+    URL --> ADM
+    VIEW --> FORM
+    VIEW --> OP
+    OP --> RULES
+    OP --> SERV
+    OP --> MOD
+    ADM --> MOD
+    MOD --> DB
