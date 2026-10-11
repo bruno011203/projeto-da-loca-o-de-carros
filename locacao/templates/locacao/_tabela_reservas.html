@@ -1,0 +1,23 @@
+{% load locadora %}
+{% if reservas %}
+<div class="table-responsive"><table class="table table-hover bg-white border mb-0">
+  <thead class="table-light"><tr><th>Código</th><th>Cliente</th><th>Veículo</th><th>Retirada prevista</th><th>Devolução prevista</th><th>Estimado</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for r in reservas %}
+    <tr>
+      <td class="fw-semibold">{{ r.codigo }}</td>
+      <td>{{ r.cliente.nome }}</td>
+      <td>{{ r.veiculo.modelo }} <small class="text-muted">{{ r.veiculo.placa }}</small></td>
+      <td>{{ r.retirada_prevista|date:"d/m/Y H:i" }}</td>
+      <td>{{ r.devolucao_prevista|date:"d/m/Y H:i" }}</td>
+      <td>{{ r.valor_estimado|moeda }}</td>
+      <td>{% status r %}</td>
+      <td class="text-end text-nowrap">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'locacao:reserva_detalhe' r.pk %}">Ver</a>
+        {% if r.status == "ATIVA" %}<a class="btn btn-sm btn-primary" href="{% url 'locacao:retirada' r.pk %}">Retirar</a>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<p class="text-muted border rounded bg-white p-3 mb-0">{{ vazio|default:"Nenhuma reserva encontrada." }}</p>{% endif %}

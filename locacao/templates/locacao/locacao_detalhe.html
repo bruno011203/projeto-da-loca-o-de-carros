@@ -1,0 +1,34 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Locação #{{ locacao.pk }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Locação #{{ locacao.pk }} {% status locacao %}</h1>
+  {% if locacao.em_aberto %}<a class="btn btn-primary" href="{% url 'locacao:devolucao' locacao.pk %}">Registrar devolução</a>{% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body"><dl class="row mb-0">
+    <dt class="col-5">Cliente</dt><dd class="col-7"><a href="{% url 'locacao:cliente_detalhe' locacao.cliente.pk %}">{{ locacao.cliente.nome }}</a></dd>
+    <dt class="col-5">Veículo</dt><dd class="col-7">{{ locacao.veiculo }}</dd>
+    <dt class="col-5">Atendente</dt><dd class="col-7">{{ locacao.atendente.nome }}</dd>
+    <dt class="col-5">Origem</dt><dd class="col-7">{% if locacao.reserva %}<a href="{% url 'locacao:reserva_detalhe' locacao.reserva.pk %}">Reserva {{ locacao.reserva.codigo }}</a>{% else %}Balcão (sem reserva){% endif %}</dd>
+    <dt class="col-5">Retirada</dt><dd class="col-7">{{ locacao.data_retirada|date:"d/m/Y H:i" }} · {{ locacao.km_saida|milhar }} km · {{ locacao.get_combustivel_saida_display }}</dd>
+    <dt class="col-5">Devolução prevista</dt><dd class="col-7">{{ locacao.devolucao_prevista|date:"d/m/Y H:i" }}</dd>
+    <dt class="col-5">Devolução real</dt><dd class="col-7">{% if locacao.devolucao_real %}{{ locacao.devolucao_real|date:"d/m/Y H:i" }} · {{ locacao.km_retorno|milhar }} km · {{ locacao.get_combustivel_retorno_display }}{% else %}—{% endif %}</dd>
+    <dt class="col-5">Diária aplicada</dt><dd class="col-7">{{ locacao.valor_diaria_aplicado|moeda }}</dd>
+    <dt class="col-5">Caução</dt><dd class="col-7">{{ locacao.valor_caucao|moeda }}</dd>
+    {% if locacao.avaria %}<dt class="col-5">Avaria</dt><dd class="col-7 text-danger">{{ locacao.descricao_avaria }}</dd>{% endif %}
+  </dl></div></div></div>
+  {% if locacao.status == "FINALIZADA" %}
+  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
+    <h2 class="h6 text-muted">Extrato</h2>
+    <table class="table mb-0">
+      <tr><td>Multa por atraso</td><td class="text-end">{{ locacao.valor_multa|moeda }}</td></tr>
+      <tr><td>Taxa de combustível</td><td class="text-end">{{ locacao.valor_combustivel|moeda }}</td></tr>
+      <tr class="fw-bold fs-5"><td>Total</td><td class="text-end">{{ locacao.valor_total|moeda }}</td></tr>
+      <tr class="text-muted"><td>Caução</td><td class="text-end">{% if locacao.avaria %}retida (avaria){% else %}devolvida{% endif %}</td></tr>
+    </table>
+    <p class="small text-muted mt-3 mb-0"><i class="bi bi-lock"></i> Locação finalizada é imutável (RN19).</p>
+  </div></div></div>
+  {% endif %}
+</div>
+{% endblock %}

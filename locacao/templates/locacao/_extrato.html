@@ -1,0 +1,8 @@
+{% load locadora %}
+<table class="table mb-0">
+  <tr><td>Diárias contratadas</td><td class="text-end">{{ extrato.diarias }} × {{ locacao.valor_diaria_aplicado|moeda }}</td><td class="text-end">{{ extrato.valor_previsto|moeda }}</td></tr>
+  <tr><td>Multa por atraso</td><td class="text-end">{{ extrato.diarias_atraso }} × {{ locacao.valor_diaria_aplicado|moeda }} × 1,5</td><td class="text-end">{{ extrato.multa|moeda }}</td></tr>
+  <tr><td>Taxa de combustível</td><td></td><td class="text-end">{{ extrato.taxa_combustivel|moeda }}</td></tr>
+  <tr class="fw-bold fs-5"><td>Total</td><td></td><td class="text-end">{{ extrato.total|moeda }}</td></tr>
+  <tr class="text-muted"><td>Caução</td><td></td><td class="text-end">{{ locacao.valor_caucao|moeda }} {% if extrato.avaria %}retida (avaria){% else %}devolvida{% endif %}</td></tr>
+</table>

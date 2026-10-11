@@ -1,0 +1,22 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Retirada{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-3">Registrar retirada — {{ reserva.codigo }}</h1>
+<div class="row g-4">
+  <div class="col-lg-5"><div class="card shadow-sm"><div class="card-body"><dl class="row mb-0">
+    <dt class="col-5">Cliente</dt><dd class="col-7">{{ reserva.cliente.nome }}</dd>
+    <dt class="col-5">Veículo</dt><dd class="col-7">{{ reserva.veiculo }}</dd>
+    <dt class="col-5">Devolução prevista</dt><dd class="col-7">{{ reserva.devolucao_prevista|date:"d/m/Y H:i" }}</dd>
+    <dt class="col-5">Diária aplicada</dt><dd class="col-7">{{ reserva.veiculo.categoria.valor_diaria|moeda }}</dd>
+    <dt class="col-5">Caução a reter</dt><dd class="col-7 fw-bold">{{ reserva.veiculo.categoria.valor_caucao|moeda }}</dd>
+  </dl></div></div></div>
+  <div class="col-lg-7"><div class="card shadow-sm"><div class="card-body">
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "locacao/_campos.html" %}
+      <p class="small text-muted mt-3 mb-0">Ao confirmar, o veículo passa a LOCADO, a reserva a CONVERTIDA e a caução é registrada (RN15).</p>
+      <div class="mt-3 d-flex gap-2"><button class="btn btn-primary">Confirmar retirada</button>
+        <a class="btn btn-outline-secondary" href="{% url 'locacao:reserva_detalhe' reserva.pk %}">Voltar</a></div>
+    </form>
+  </div></div></div>
+</div>
+{% endblock %}

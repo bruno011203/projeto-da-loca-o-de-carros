@@ -1,0 +1,29 @@
+{% extends "locacao/base.html" %}
+{% block titulo %}Clientes{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Clientes</h1>
+  <a class="btn btn-primary" href="{% url 'locacao:cliente_novo' %}"><i class="bi bi-plus-lg"></i> Novo cliente</a>
+</div>
+<form class="d-flex gap-2 mb-3" method="get">
+  <input class="form-control" style="max-width:320px" name="q" value="{{ busca }}" placeholder="Nome ou CPF">
+  <button class="btn btn-outline-secondary">Buscar</button></form>
+{% if clientes %}
+<div class="table-responsive"><table class="table table-hover bg-white border">
+  <thead class="table-light"><tr><th>Nome</th><th>CPF</th><th>CNH</th><th>Validade CNH</th><th>Telefone</th><th>Situação</th><th></th></tr></thead>
+  <tbody>
+  {% for c in clientes %}
+    <tr>
+      <td><a href="{% url 'locacao:cliente_detalhe' c.pk %}">{{ c.nome }}</a></td>
+      <td>{{ c.cpf_formatado }}</td>
+      <td>{{ c.cnh_numero }} ({{ c.cnh_categoria }})</td>
+      <td>{{ c.cnh_validade|date:"d/m/Y" }}</td>
+      <td>{{ c.telefone|default:"—" }}</td>
+      <td>{% if c.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-secondary">Inativo</span>{% endif %}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'locacao:cliente_editar' c.pk %}">Editar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<p class="text-muted border rounded bg-white p-3">Nenhum cliente encontrado.</p>{% endif %}
+{% endblock %}

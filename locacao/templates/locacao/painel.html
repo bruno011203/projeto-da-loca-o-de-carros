@@ -1,0 +1,23 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Painel do dia <small class="text-muted fs-6">{% now "d/m/Y" %}</small></h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-primary" href="{% url 'locacao:disponibilidade' %}"><i class="bi bi-search"></i> Nova reserva</a>
+    <a class="btn btn-outline-primary" href="{% url 'locacao:locacao_balcao' %}">Locação de balcão</a>
+  </div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">Veículos livres</div><div class="card-numero text-success">{{ veiculos.livres }}<small class="fs-6 text-muted"> / {{ veiculos.total }}</small></div></div></div></div>
+  <div class="col-6 col-lg"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">Locações em andamento</div><div class="card-numero text-primary">{{ em_andamento }}</div></div></div></div>
+  <div class="col-6 col-lg"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">Locações atrasadas</div><div class="card-numero {% if atrasadas %}text-danger{% endif %}">{{ atrasadas|length }}</div></div></div></div>
+  <div class="col-6 col-lg"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">Em manutenção</div><div class="card-numero text-warning">{{ veiculos.manutencao }}</div></div></div></div>
+  <div class="col-12 col-lg"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">Faturado hoje</div><div class="card-numero">{{ faturado_hoje|moeda }}</div></div></div></div>
+</div>
+<h2 class="h5">Locações atrasadas</h2>
+{% include "locacao/_tabela_locacoes.html" with locacoes=atrasadas vazio="Nenhuma locação atrasada." %}
+<h2 class="h5 mt-4">Retiradas previstas para hoje</h2>
+{% include "locacao/_tabela_reservas.html" with reservas=retiradas_hoje vazio="Nenhuma retirada prevista para hoje." %}
+<h2 class="h5 mt-4">Devoluções previstas para hoje</h2>
+{% include "locacao/_tabela_locacoes.html" with locacoes=devolucoes_hoje vazio="Nenhuma devolução prevista para hoje." %}
+{% endblock %}
