@@ -1,0 +1,19 @@
+flowchart LR
+    CNH["CNH<br/><small>objeto de valor</small>"]
+    Cliente
+    Categoria
+    Veiculo["Veículo"]
+    Reserva:::centro
+    Locacao["Locação"]:::centro
+    Funcionario["Funcionário"]
+
+    CNH ---|"1 : 0..1"| Cliente
+    Cliente ---|"1 : 0..*"| Reserva
+    Reserva ---|"0..* : 1"| Veiculo
+    Categoria ---|"1 : 0..*"| Veiculo
+    Reserva ---|"0..1 : 0..1"| Locacao
+    Cliente ---|"1 : 0..*"| Locacao
+    Veiculo ---|"1 : 0..*"| Locacao
+    Funcionario ---|"1 : 0..*"| Locacao
+
+    classDef centro fill:#e3eefc,stroke:#2f6fd6,stroke-width:2px

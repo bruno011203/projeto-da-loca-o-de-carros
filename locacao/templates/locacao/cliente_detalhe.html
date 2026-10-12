@@ -1,0 +1,19 @@
+{% extends "locacao/base.html" %}
+{% block titulo %}{{ cliente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ cliente.nome }} {% if not cliente.ativo %}<span class="badge text-bg-secondary fs-6">Inativo</span>{% endif %}</h1>
+  <a class="btn btn-outline-secondary" href="{% url 'locacao:cliente_editar' cliente.pk %}">Editar</a>
+</div>
+<div class="card shadow-sm mb-4"><div class="card-body"><dl class="row mb-0">
+  <dt class="col-sm-3">CPF</dt><dd class="col-sm-9">{{ cliente.cpf_formatado }}</dd>
+  <dt class="col-sm-3">Nascimento</dt><dd class="col-sm-9">{{ cliente.data_nascimento|date:"d/m/Y" }} ({{ idade }} anos)</dd>
+  <dt class="col-sm-3">CNH</dt><dd class="col-sm-9">{{ cliente.cnh.numero }} — categoria {{ cliente.cnh.categoria }}, válida até {{ cliente.cnh.validade|date:"d/m/Y" }}</dd>
+  <dt class="col-sm-3">Contato</dt><dd class="col-sm-9">{{ cliente.telefone|default:"—" }} · {{ cliente.email|default:"—" }}</dd>
+  <dt class="col-sm-3">Endereço</dt><dd class="col-sm-9">{{ cliente.endereco|default:"—" }}</dd>
+</dl></div></div>
+<h2 class="h5">Reservas</h2>
+{% include "locacao/_tabela_reservas.html" %}
+<h2 class="h5 mt-4">Locações</h2>
+{% include "locacao/_tabela_locacoes.html" %}
+{% endblock %}

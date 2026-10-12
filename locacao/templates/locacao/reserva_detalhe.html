@@ -1,0 +1,26 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Reserva {{ reserva.codigo }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Reserva {{ reserva.codigo }} {% status reserva %}</h1>
+  {% if reserva.status == "ATIVA" %}
+  <div class="d-flex gap-2">
+    <a class="btn btn-primary" href="{% url 'locacao:retirada' reserva.pk %}">Registrar retirada</a>
+    <form method="post" action="{% url 'locacao:reserva_cancelar' reserva.pk %}"
+          onsubmit="return confirm('{% if multa_cancelamento %}Cancelamento com multa. Confirmar?{% else %}Cancelar esta reserva?{% endif %}')">{% csrf_token %}
+      <button class="btn btn-outline-danger">Cancelar reserva</button></form>
+  </div>
+  {% endif %}
+</div>
+{% if multa_cancelamento %}<div class="alert alert-warning">Faltam menos de 24 h para a retirada: o cancelamento gera multa de {{ multa_cancelamento|moeda }} (RN11).</div>{% endif %}
+<div class="card shadow-sm"><div class="card-body"><dl class="row mb-0">
+  <dt class="col-sm-3">Cliente</dt><dd class="col-sm-9"><a href="{% url 'locacao:cliente_detalhe' reserva.cliente.pk %}">{{ reserva.cliente }}</a></dd>
+  <dt class="col-sm-3">Veículo</dt><dd class="col-sm-9">{{ reserva.veiculo }} — {{ reserva.veiculo.categoria }}</dd>
+  <dt class="col-sm-3">Retirada prevista</dt><dd class="col-sm-9">{{ reserva.retirada_prevista|date:"d/m/Y H:i" }}</dd>
+  <dt class="col-sm-3">Devolução prevista</dt><dd class="col-sm-9">{{ reserva.devolucao_prevista|date:"d/m/Y H:i" }}</dd>
+  <dt class="col-sm-3">Valor estimado</dt><dd class="col-sm-9 fw-bold">{{ reserva.valor_estimado|moeda }}</dd>
+  {% if reserva.status == "CANCELADA" %}<dt class="col-sm-3">Multa de cancelamento</dt><dd class="col-sm-9">{{ reserva.valor_multa_cancelamento|moeda }}</dd>{% endif %}
+  {% if locacao %}<dt class="col-sm-3">Locação</dt><dd class="col-sm-9"><a href="{% url 'locacao:locacao_detalhe' locacao.pk %}">Locação #{{ locacao.pk }}</a></dd>{% endif %}
+  <dt class="col-sm-3">Criada em</dt><dd class="col-sm-9">{{ reserva.criada_em|date:"d/m/Y H:i" }}</dd>
+</dl></div></div>
+{% endblock %}

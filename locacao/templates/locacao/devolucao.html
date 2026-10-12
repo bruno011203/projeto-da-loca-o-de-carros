@@ -1,0 +1,24 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Devolução{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-1">Registrar devolução — locação #{{ locacao.pk }} {% status locacao %}</h1>
+<p class="text-muted">{{ locacao.cliente.nome }} · {{ locacao.veiculo }} · retirada {{ locacao.data_retirada|date:"d/m/Y H:i" }} ({{ locacao.km_saida|milhar }} km, {{ locacao.get_combustivel_saida_display }}) · prevista {{ locacao.devolucao_prevista|date:"d/m/Y H:i" }}</p>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "locacao/_campos.html" %}
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-outline-primary" name="calcular">Calcular extrato</button>
+        {% if extrato %}<button class="btn btn-primary" name="confirmar">Confirmar devolução</button>{% endif %}
+        <a class="btn btn-outline-secondary" href="{% url 'locacao:locacao_detalhe' locacao.pk %}">Voltar</a>
+      </div>
+    </form>
+  </div></div></div>
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <h2 class="h6 text-muted">Extrato</h2>
+    {% if extrato %}{% include "locacao/_extrato.html" %}
+    <p class="small text-muted mt-3 mb-0">Tolerância de 60 min; cada bloco de 24 h iniciado além dela é uma diária de atraso, 50% mais cara (RN17). {% if extrato.avaria %}Com avaria, o veículo vai para MANUTENÇÃO (RN18).{% endif %}</p>
+    {% else %}<p class="text-muted mb-0">Informe os dados de retorno e clique em “Calcular extrato”.</p>{% endif %}
+  </div></div></div>
+</div>
+{% endblock %}

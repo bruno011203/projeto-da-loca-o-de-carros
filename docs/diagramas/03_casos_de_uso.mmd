@@ -1,0 +1,21 @@
+flowchart LR
+    Atendente(["👤 Atendente"])
+    Gerente(["👤 Gerente"])
+    subgraph Sistema["Sistema da Locadora"]
+        direction TB
+        UC01(["UC01 — Manter veículo"])
+        UC02(["UC02 — Manter cliente"])
+        UC03(["UC03 — Consultar disponibilidade e reservar"])
+        UC04(["UC04 — Registrar retirada"])
+        UC05(["UC05 — Registrar devolução e apurar valores"])
+        CANC(["Cancelar reserva"])
+        CALC(["Calcular extrato"])
+    end
+    Gerente -.->|herda| Atendente
+    Atendente --- UC01
+    Atendente --- UC02
+    Atendente --- UC03
+    Atendente --- UC04
+    Atendente --- UC05
+    CANC -.->|«extend»| UC03
+    UC05 -.->|«include»| CALC

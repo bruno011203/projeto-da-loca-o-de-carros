@@ -1,0 +1,23 @@
+stateDiagram-v2
+    direction LR
+    state "Reserva" as R {
+        ATIVA
+        CANCELADA
+        EXPIRADA
+    }
+    state "Locação" as L {
+        EM_ANDAMENTO
+        ATRASADA
+        FINALIZADA
+    }
+    [*] --> ATIVA: reservar (UC03)
+    ATIVA --> CANCELADA: cancelar · RN11
+    ATIVA --> EXPIRADA: 4h sem retirada · RN12
+    ATIVA --> EM_ANDAMENTO: retirada · RN13 (reserva → CONVERTIDA)
+    [*] --> EM_ANDAMENTO: locação de balcão
+    EM_ANDAMENTO --> ATRASADA: atraso > 60 min · RN17
+    EM_ANDAMENTO --> FINALIZADA: devolução
+    ATRASADA --> FINALIZADA: devolução + multa
+    CANCELADA --> [*]
+    EXPIRADA --> [*]
+    FINALIZADA --> [*]

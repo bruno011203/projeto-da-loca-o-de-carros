@@ -1,0 +1,31 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Disponibilidade{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-3">Consultar disponibilidade</h1>
+<div class="card shadow-sm mb-4"><div class="card-body">
+  <form method="get" class="row g-3 align-items-end" novalidate>
+    {% if form.non_field_errors %}<div class="col-12"><div class="alert alert-danger mb-0">{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+    {% for campo in form %}
+      <div class="col-md-4"><label class="form-label fw-semibold" for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}
+        {% for erro in campo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}</div>
+    {% endfor %}
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-search"></i> Buscar veículos livres</button></div>
+  </form>
+</div></div>
+{% if resultados is not None %}
+  <h2 class="h5">{{ resultados|length }} veículo(s) disponível(is) · {{ diarias }} diária(s)</h2>
+  {% if resultados %}
+  <div class="row g-3">
+    {% for veiculo, valor in resultados %}
+    <div class="col-md-6 col-lg-4"><div class="card shadow-sm h-100"><div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between"><h3 class="h6 mb-1">{{ veiculo.marca }} {{ veiculo.modelo }}</h3><span class="badge text-bg-light border">{{ veiculo.categoria }}</span></div>
+      <div class="text-muted small mb-2">{{ veiculo.placa }} · {{ veiculo.ano_fabricacao }} · {{ veiculo.cor }}</div>
+      <div class="small">Diária: {{ veiculo.categoria.valor_diaria|moeda }} · Caução: {{ veiculo.categoria.valor_caucao|moeda }}</div>
+      <div class="fs-5 fw-bold my-2">{{ valor|moeda }}</div>
+      <a class="btn btn-primary mt-auto" href="{% url 'locacao:reserva_nova' %}?veiculo={{ veiculo.pk }}&retirada={{ retirada|urlencode }}&devolucao={{ devolucao|urlencode }}">Reservar</a>
+    </div></div></div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="text-muted border rounded bg-white p-3">Nenhum veículo livre nesse período.</p>{% endif %}
+{% endif %}
+{% endblock %}

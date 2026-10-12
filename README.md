@@ -1,66 +1,76 @@
-# Sistema de Gestão para Locadora de Automóveis
+# Sistema de Gestão para Locadora de Veículos
 
-Aplicação web em **Python + Flask + SQLite** para gerenciar clientes, frota e locações.
+Sistema web que controla o ciclo completo de uma locação: **reserva → retirada → devolução**,
+com apuração automática de diárias, multa por atraso e taxa de combustível.
 
-## Funcionalidades
+- **Stack:** Python 3.12+ · Django 5.2 LTS · SQLite · Bootstrap 5 (CDN)
+- **Documentação completa:** [`docs/Documentacao_Final.docx`](docs/Documentacao_Final.docx)
 
-- **Painel**: veículos disponíveis/locados/em manutenção, locações ativas e em atraso,
-  faturamento do mês e devoluções previstas para os próximos dias.
-- **Clientes**: cadastro com validação de CPF (dígitos verificadores), CNH e validade,
-  busca por nome/CPF e histórico de locações.
-- **Veículos**: cadastro com placa no padrão antigo ou Mercosul, categoria, diária e
-  quilometragem; filtro por status; envio para manutenção e liberação.
-- **Locações**: abertura, devolução (com prévia do valor) e cancelamento.
+## Casos de uso entregues
 
-## Regras de negócio
+| Caso de uso | Regras | Onde |
+|---|---|---|
+| UC01 — Manter veículo | RN05, RN07 | Telas *Veículos* e Django Admin |
+| UC02 — Manter cliente | RN01, RN02, RN03 | Telas *Clientes* e Django Admin |
+| UC03 — Consultar disponibilidade e reservar | RN04, RN06, RN08, RN09, RN10, RN11, RN12 | *Disponibilidade* e *Reservas* |
+| UC04 — Registrar retirada | RN13, RN14, RN15 | *Reservas → Retirar* e *Locação de balcão* |
+| UC05 — Registrar devolução e apurar valores | RN16, RN17, RN18, RN19 | *Locações → Devolver* |
 
-| Regra | Onde |
-|---|---|
-| Só é possível locar veículos com status *Disponível* | `abrir_locacao` |
-| A CNH do cliente precisa ser válida até o fim da locação | `abrir_locacao` |
-| Cliente com locação em atraso não pode fazer nova locação | `abrir_locacao` |
-| A devolução prevista deve ser depois da retirada | `abrir_locacao` |
-| O valor da diária é congelado no momento da locação | `abrir_locacao` |
-| Cobrança mínima de 1 diária | `calcular_diarias` |
-| Cada dia de atraso gera multa de 20% sobre a diária (além da diária) | `calcular_fechamento` |
-| Km de devolução não pode ser menor que o de retirada; atualiza o km do veículo | `devolver_veiculo` |
-| Clientes e veículos com histórico de locações não podem ser excluídos | `excluir_cliente` / `excluir_veiculo` |
-| CPF e placa são únicos | `salvar_cliente` / `salvar_veiculo` |
+## Pré-requisitos
 
-Todas as regras ficam em `locadora/servicos.py`; os valores (multa, categorias) são
-constantes no topo do arquivo e podem ser ajustados.
+- Python 3.12 ou superior
+- Navegador atualizado (Chrome, Edge, Firefox ou Safari) com acesso à internet para carregar o Bootstrap por CDN
 
-## Como executar
+## Instalação e execução
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-python seed.py                   # opcional: cria dados de exemplo
-python app.py                    # abre em http://127.0.0.1:5000
+python manage.py migrate
+python manage.py seed                # dados de exemplo (use --reset para recriar)
+python manage.py runserver
 ```
 
-O banco SQLite é criado automaticamente em `instance/locadora.sqlite3`.
+Acesse <http://127.0.0.1:8000> e entre com um dos usuários criados pelo `seed`:
+
+| Login | Senha | Perfil |
+|---|---|---|
+| `gerente` | `locadora123` | Gerente — também acessa o admin em `/admin` |
+| `atendente` | `locadora123` | Atendente |
 
 ## Testes
 
 ```bash
-pytest
+python manage.py test
 ```
+
+São 64 testes: fórmulas de cálculo (`test_services.py`), regras de negócio puras
+(`test_rules.py`) e integração com banco e interface (`test_views.py`), incluindo o
+exemplo numérico do documento de regras (total de R$ 690,00).
 
 ## Estrutura
 
 ```
-app.py                 ponto de entrada
-seed.py                dados de exemplo
-locadora/
-  __init__.py          criação da aplicação e filtros de template (moeda, data)
-  db.py                conexão com SQLite
-  schema.sql           tabelas: clientes, veiculos, locacoes
-  servicos.py          regras de negócio
-  rotas.py             páginas e formulários
-  templates/           HTML (Jinja2)
-  static/style.css     estilos
-tests/                 testes automatizados (pytest)
+config/                 configurações do projeto Django (pt-br, America/Sao_Paulo, USE_TZ)
+locacao/
+  enums.py              StatusVeiculo, StatusReserva, StatusLocacao, CategoriaCNH, NivelCombustivel, PerfilUsuario
+  models.py             as 7 entidades (Cliente+CNH, Categoria, Veiculo, Reserva, Locacao, Funcionario)
+  services.py           as 5 fórmulas de cálculo — funções puras, Decimal HALF_UP
+  rules.py              validações RN01–RN19 — funções puras
+  operacoes.py          casos de uso UC03–UC05 (transações com o banco)
+  forms.py · views.py · urls.py · admin.py
+  management/commands/seed.py
+  templates/locacao/    telas em Bootstrap 5
+  tests/                test_services.py · test_rules.py · test_views.py
+docs/
+  diagramas/            fontes Mermaid (.mmd) e imagens (.png)
+  prototipos/           baixa fidelidade (wireframes) e alta fidelidade (capturas)
+  Documentacao_Final.docx
 ```
+
+## Fluxo de trabalho
+
+GitHub Flow com `main` (entregue), `develop` (integração) e `feature/<caso-de-uso>`.
+Commits no padrão Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).

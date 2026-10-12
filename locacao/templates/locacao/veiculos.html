@@ -1,0 +1,31 @@
+{% extends "locacao/base.html" %}{% load locadora %}
+{% block titulo %}Veículos{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Frota</h1>
+  <a class="btn btn-primary" href="{% url 'locacao:veiculo_novo' %}"><i class="bi bi-plus-lg"></i> Novo veículo</a>
+</div>
+<form class="d-flex gap-2 mb-3" method="get"><input type="hidden" name="status" value="{{ status }}">
+  <input class="form-control" style="max-width:320px" name="q" value="{{ busca }}" placeholder="Placa, marca ou modelo">
+  <button class="btn btn-outline-secondary">Buscar</button></form>
+{% include "locacao/_filtros.html" %}
+{% if veiculos %}
+<div class="table-responsive"><table class="table table-hover bg-white border">
+  <thead class="table-light"><tr><th>Placa</th><th>Veículo</th><th>Ano</th><th>Categoria</th><th>Diária</th><th>Km</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for v in veiculos %}
+    <tr>
+      <td class="fw-semibold">{{ v.placa }}</td>
+      <td>{{ v.marca }} {{ v.modelo }} <small class="text-muted">{{ v.cor }}</small></td>
+      <td>{{ v.ano_fabricacao }}</td>
+      <td>{{ v.categoria }}</td>
+      <td>{{ v.categoria.valor_diaria|moeda }}</td>
+      <td>{{ v.km_atual|milhar }}</td>
+      <td>{% status v %}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'locacao:veiculo_editar' v.pk %}">Editar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<p class="text-muted border rounded bg-white p-3">Nenhum veículo encontrado.</p>{% endif %}
+{% endblock %}

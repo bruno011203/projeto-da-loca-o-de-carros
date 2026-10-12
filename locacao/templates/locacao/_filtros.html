@@ -1,0 +1,6 @@
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a class="btn btn-sm {% if not status %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?">Todos</a>
+  {% for valor, nome in status_opcoes %}
+    <a class="btn btn-sm {% if status == valor %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?status={{ valor }}">{{ nome }}</a>
+  {% endfor %}
+</div>

@@ -1,0 +1,10 @@
+{% extends "locacao/base.html" %}
+{% block titulo %}Locações{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Locações</h1>
+  <a class="btn btn-outline-primary" href="{% url 'locacao:locacao_balcao' %}">Locação de balcão</a>
+</div>
+{% include "locacao/_filtros.html" %}
+{% include "locacao/_tabela_locacoes.html" %}
+{% endblock %}

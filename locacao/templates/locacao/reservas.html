@@ -1,0 +1,10 @@
+{% extends "locacao/base.html" %}
+{% block titulo %}Reservas{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Reservas</h1>
+  <a class="btn btn-primary" href="{% url 'locacao:disponibilidade' %}"><i class="bi bi-search"></i> Nova reserva</a>
+</div>
+{% include "locacao/_filtros.html" %}
+{% include "locacao/_tabela_reservas.html" %}
+{% endblock %}

@@ -1,0 +1,79 @@
+classDiagram
+    direction LR
+    class Cliente {
+        +Long id
+        +String nome
+        +String cpf
+        +String email
+        +String telefone
+        +LocalDate dataNascimento
+        +String endereco
+        +boolean ativo
+        +CNH cnh
+    }
+    class CNH {
+        <<valor>>
+        +String numero
+        +CategoriaCNH categoria
+        +LocalDate validade
+    }
+    class Categoria {
+        +Long id
+        +String nome
+        +BigDecimal valorDiaria
+        +BigDecimal valorCaucao
+        +BigDecimal valorTanqueCheio
+        +String descricao
+    }
+    class Veiculo {
+        +Long id
+        +String placa
+        +String chassi
+        +String marca
+        +String modelo
+        +Integer anoFabricacao
+        +String cor
+        +Integer kmAtual
+        +StatusVeiculo status
+    }
+    class Reserva {
+        +Long id
+        +String codigo
+        +LocalDateTime retiradaPrevista
+        +LocalDateTime devolucaoPrevista
+        +BigDecimal valorEstimado
+        +StatusReserva status
+        +cancelar()
+    }
+    class Locacao {
+        +Long id
+        +LocalDateTime dataRetirada
+        +LocalDateTime devolucaoPrevista
+        +LocalDateTime devolucaoReal
+        +Integer kmSaida
+        +Integer kmRetorno
+        +NivelCombustivel combustivelSaida
+        +NivelCombustivel combustivelRetorno
+        +BigDecimal valorDiariaAplicado
+        +BigDecimal valorCaucao
+        +BigDecimal valorMulta
+        +BigDecimal valorTotal
+        +boolean avaria
+        +StatusLocacao status
+        +registrarDevolucao()
+    }
+    class Funcionario {
+        +Long id
+        +String nome
+        +String matricula
+        +String login
+        +PerfilUsuario perfil
+    }
+    Cliente *-- "1" CNH : possui
+    Cliente "1" -- "0..*" Reserva : faz
+    Veiculo "1" -- "0..*" Reserva : é reservado
+    Categoria "1" -- "0..*" Veiculo : classifica
+    Reserva "0..1" -- "0..1" Locacao : origina
+    Cliente "1" -- "0..*" Locacao : aluga
+    Veiculo "1" -- "0..*" Locacao : é locado
+    Funcionario "1" -- "0..*" Locacao : atende

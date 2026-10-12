@@ -1,0 +1,23 @@
+{% load locadora %}
+{% if locacoes %}
+<div class="table-responsive"><table class="table table-hover bg-white border mb-0">
+  <thead class="table-light"><tr><th>#</th><th>Cliente</th><th>Veículo</th><th>Retirada</th><th>Devolução prevista</th><th>Total</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for l in locacoes %}
+    <tr>
+      <td>{{ l.pk }}</td>
+      <td>{{ l.cliente.nome }}</td>
+      <td>{{ l.veiculo.modelo }} <small class="text-muted">{{ l.veiculo.placa }}</small></td>
+      <td>{{ l.data_retirada|date:"d/m/Y H:i" }}</td>
+      <td>{{ l.devolucao_prevista|date:"d/m/Y H:i" }}</td>
+      <td>{% if l.valor_total is not None %}{{ l.valor_total|moeda }}{% else %}—{% endif %}</td>
+      <td>{% status l %}</td>
+      <td class="text-end text-nowrap">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'locacao:locacao_detalhe' l.pk %}">Ver</a>
+        {% if l.em_aberto %}<a class="btn btn-sm btn-primary" href="{% url 'locacao:devolucao' l.pk %}">Devolver</a>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<p class="text-muted border rounded bg-white p-3 mb-0">{{ vazio|default:"Nenhuma locação encontrada." }}</p>{% endif %}

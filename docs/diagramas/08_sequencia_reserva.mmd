@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    actor A as Atendente
+    participant V as views
+    participant O as operacoes
+    participant R as rules
+    participant DB as Banco (ORM)
+    A->>V: período + categoria
+    V->>O: veiculos_disponiveis(inicio, fim, categoria)
+    O->>DB: status = DISPONIVEL e sem reserva ATIVA sobreposta [RN05–RN07]
+    DB-->>V: veículos livres
+    V-->>A: lista com valor estimado
+    A->>V: escolhe veículo e cliente
+    V->>O: criar_reserva(cliente, veiculo, inicio, fim)
+    O->>DB: SELECT veículo FOR UPDATE
+    O->>R: validar_periodo [RN08, RN09, RN10]
+    O->>R: validar_cliente [RN01–RN04]
+    O->>R: ha_sobreposicao(inicio, fim, períodos do veículo) [RN06]
+    alt alguma regra violada
+        R-->>V: RegraNegocioError (código RN)
+        V-->>A: mensagem de erro
+    else tudo válido
+        O->>DB: INSERT reserva ATIVA + código
+        V-->>A: confirmação com o código da reserva
+    end
