@@ -121,7 +121,7 @@ function tabela(titulo, cabecalho, linhas, pesos) {
 
 const AUTOR = "Bruno Pinheiro Dos Santos";
 const TITULO = "Sistema de Gestão para Locadora de Veículos";
-const VERSAO = "Versão 1.0";
+const VERSAO = "Versão 1.1";
 
 const capa = [
   new Paragraph({ children: [new TextRun({ text: AUTOR.toUpperCase(), bold: true, size: 28 })],
@@ -143,6 +143,7 @@ const historico = [
     ["0.1", "10/10/2026", AUTOR, "Visão geral, problemática, requisitos e protótipo de baixa fidelidade."],
     ["0.2", "10/10/2026", AUTOR, "Modelo de domínio, regras de negócio, casos de uso, diagramas e ADRs."],
     ["1.0", "11/10/2026", AUTOR, "Implementação concluída (UC01–UC05), protótipo de alta fidelidade, estratégia de testes e revisão final."],
+    ["1.1", "25/10/2026", AUTOR, "Rodada de testes exploratórios e de sistema; 6 defeitos corrigidos; 83 testes e 99% de cobertura."],
   ], [1, 1.4, 2.6, 5]),
   new Paragraph({ children: [new TextRun({ text: "SUMÁRIO", bold: true, size: 26 })],
     alignment: AlignmentType.CENTER, spacing: { before: 400, after: 240 }, pageBreakBefore: true }),
@@ -178,7 +179,7 @@ const visaoGeral = [
   H2("1.1 Descrição Executiva"),
   P("O **Sistema de Gestão para Locadora de Veículos** é uma aplicação web que controla o ciclo completo de uma locação: o cliente **reserva** um veículo para um período, **retira** na loja, **devolve**, e o sistema **apura o valor final** — diárias, multa por atraso e taxa de combustível — de forma automática, auditável e consistente."),
   P("A solução foi construída como um monólito em **Python 3 e Django 5.2 LTS**, com banco **SQLite** e interface em **Bootstrap 5**. O núcleo do domínio — as cinco fórmulas de cálculo e as dezenove regras de negócio (RN01 a RN19) — foi isolado em funções puras, sem acesso a banco, o que torna as regras fáceis de explicar, testar e manter."),
-  P("O sistema é operado pelos funcionários da locadora (atendentes e gerentes), que acessam com login e senha. O recorte entregue cobre cinco casos de uso completos: manter veículo (UC01), manter cliente (UC02), consultar disponibilidade e reservar (UC03), registrar retirada (UC04) e registrar devolução e apurar valores (UC05). A suíte de 64 testes automatizados comprova o comportamento, inclusive o exemplo numérico de referência do projeto (total de R$ 690,00)."),
+  P("O sistema é operado pelos funcionários da locadora (atendentes e gerentes), que acessam com login e senha. O recorte entregue cobre cinco casos de uso completos: manter veículo (UC01), manter cliente (UC02), consultar disponibilidade e reservar (UC03), registrar retirada (UC04) e registrar devolução e apurar valores (UC05). A suíte de 83 testes automatizados (99% de cobertura de código) e um teste de sistema no navegador comprovam o comportamento, inclusive o exemplo numérico de referência do projeto (total de R$ 690,00)."),
   ...tabela("Resumo do projeto", ["Item", "Descrição"], [
     ["Produto", TITULO],
     ["Tipo", "Aplicação web (navegador de computador, tablet ou smartphone)"],
@@ -186,7 +187,7 @@ const visaoGeral = [
     ["Stack", "Python 3.12+ · Django 5.2 LTS · SQLite · Bootstrap 5 · Mermaid"],
     ["Casos de uso", "UC01 a UC05 (ciclo reserva → retirada → devolução)"],
     ["Regras de negócio", "19 (RN01 a RN19), todas implementadas e rastreáveis até teste"],
-    ["Testes", "64 testes automatizados (unidade e integração), todos passando"],
+    ["Testes", "83 testes automatizados (unidade, integração e interface), 99% de cobertura de código, mais teste de sistema no navegador"],
     ["Repositório", "github.com/bruno011203/projeto-da-loca-o-de-carros"],
   ], [1, 3]),
 
@@ -272,7 +273,10 @@ const visaoGeral = [
     ["Casos de uso entregues por inteiro", "5 de 5", "5 de 5 (UC01–UC05)"],
     ["Regras de negócio implementadas", "19 de 19", "19 de 19, cada uma com teste"],
     ["Fórmulas de cálculo testadas", "5 de 5", "5 de 5 + exemplo numérico completo"],
-    ["Testes automatizados passando", "100%", "64 de 64 (≈ 2,5 s)"],
+    ["Testes automatizados passando", "100%", "83 de 83 (≈ 13 s), também em ordem aleatória"],
+    ["Cobertura de código (coverage.py)", "≥ 90%", "99% (views, forms, admin, regras e fórmulas)"],
+    ["Teste de sistema no navegador (Chromium)", "100% dos passos", "25 de 25 passos, sem erro de JavaScript nem HTTP 500"],
+    ["Defeitos conhecidos em aberto", "0", "0 — 6 defeitos encontrados nos testes foram corrigidos (Apêndice F)"],
     ["Overbooking (reservas sobrepostas aceitas)", "0", "0 — recusado pela regra RN06 e por lock de linha"],
     ["Tempo para apurar uma devolução", "< 1 minuto", "Cálculo instantâneo, com prévia antes de confirmar"],
     ["Tempo de resposta das telas (ambiente local)", "< 1 s", "Atendido"],
@@ -334,7 +338,7 @@ const arquitetura = [
     ["Templates", "locacao/templates/", "Interface responsiva com Bootstrap 5 e Bootstrap Icons via CDN."],
     ["Administração", "locacao/admin.py", "UC01 e UC02 pelo Django Admin, com busca e filtros; reservas e locações em modo somente leitura."],
     ["Carga de dados", "management/commands/seed.py", "Categorias, 10 veículos, clientes, funcionários, reservas e locações de exemplo."],
-    ["Testes", "locacao/tests/", "64 testes em três níveis (fórmulas, regras e integração)."],
+    ["Testes", "locacao/tests/", "83 testes em três níveis (fórmulas, regras, integração e interface)."],
   ], [1.5, 2, 4]),
   H2("2.2 Decisões Arquiteturais (ADR)"),
   P("Cada decisão segue o formato contexto → decisão → consequências. Todas têm status **Aceita**."),
@@ -580,17 +584,18 @@ const testes = [
   H2("6.1 Pirâmide de Testes"),
   P("A estratégia segue a pirâmide de testes: muitos testes rápidos e isolados na base, sobre as fórmulas e regras puras, e menos testes, mais abrangentes, no topo, exercitando banco de dados e interface. A separação entre `services.py`/`rules.py` e o restante do código (ADR-005) é o que permite uma base larga e barata."),
   ...tabela("Pirâmide de testes do projeto", ["Nível", "Arquivo", "Qtd.", "O que cobre", "Tipo de teste"], [
-    ["Topo — interface (ponta a ponta no servidor)", "test_views.py · InterfaceTests", "4", "Login obrigatório, carregamento de todas as telas, validação de CPF no formulário e o ciclo completo reservar → reserva sobreposta recusada → retirar → devolver com atraso (R$ 690,00).", "django.test.TestCase + Client"],
-    ["Meio — integração com banco", "test_views.py · Disponibilidade, Reserva, RetiradaDevolucao", "22", "Operações reais no banco: RN01–RN06, RN08, RN11–RN19, snapshot de preço, locação de balcão, ATRASADA e EXPIRADA por tempo.", "django.test.TestCase"],
+    ["Topo — sistema (navegador real)", "roteiro E2E com Playwright (Chromium)", "25 passos", "Login, cadastros, busca, reserva, retirada, devolução com avaria, multa de atraso, tela de celular, ausência de erros de JavaScript e HTTP 500. Ver seção 6.3.", "Teste de sistema / aceitação"],
+    ["Topo — interface (servidor)", "test_views.py · Interface, TelasDeOperacao, Cadastros", "22", "Login obrigatório em todas as rotas, todas as telas e filtros, caminhos de erro de cada formulário, admin com as mesmas validações, ciclo completo reservar → retirar → devolver com atraso (R$ 690,00) e regressões dos defeitos corrigidos.", "django.test.TestCase + Client"],
+    ["Meio — integração com banco", "test_views.py · Disponibilidade, Reserva, RetiradaDevolucao, Seed", "23", "Operações reais no banco: RN01–RN06, RN08, RN11–RN19, snapshot de preço, locação de balcão, ATRASADA e EXPIRADA por tempo e o comando seed.", "django.test.TestCase"],
     ["Base — unidade (regras)", "test_rules.py", "24", "Sobreposição (8 cenários), idade, CNH, cliente inativo/atrasado, período, cancelamento, expiração, retirada e km.", "SimpleTestCase (sem banco)"],
     ["Base — unidade (fórmulas)", "test_services.py", "14", "As 5 fórmulas, frações de 24 h, tolerância exata de 60 min, HALF_UP, combustível sem crédito e o exemplo numérico completo.", "SimpleTestCase (sem banco)"],
   ], [1.6, 1.8, 0.6, 3.6, 1.6]),
-  P("**Total: 64 testes, 38 deles na base da pirâmide (59%).** Todos passam em cerca de 2,5 segundos."),
+  P("**Total: 83 testes automatizados, 38 deles na base da pirâmide, e 99% de cobertura de código** (medida com coverage.py). Todos passam em cerca de 13 segundos, inclusive executados em ordem aleatória (`--shuffle`), o que mostra que um teste não depende do outro."),
+  P("Além dos testes automatizados, foram feitos: **testes exploratórios** com entradas inválidas em todas as telas (datas no passado, campos vazios, textos em campos numéricos, identificadores inexistentes, CPF e placa com pontuação); **teste de regressão**, rodando os testes novos contra o código antigo para confirmar que cada um detecta o defeito que protege; e **verificação de segurança** (`manage.py check --deploy`, login obrigatório em todas as rotas, proteção CSRF e escape de HTML)."),
   H3("6.1.1 O que ficou de fora"),
-  item("**Testes de interface no navegador real** (Selenium/Playwright): substituídos pelo cliente de testes do Django; as telas foram verificadas manualmente e capturadas no protótipo de alta fidelidade."),
   item("**Testes de carga e concorrência real**: a proteção por `select_for_update` só tem efeito pleno em PostgreSQL; com SQLite as escritas já são serializadas."),
   item("**Testes de usabilidade com usuários finais** e testes de acessibilidade automatizados."),
-  item("**Medição de cobertura** (coverage.py) não faz parte da entrega; a cobertura funcional é garantida pela matriz RN → teste da seção 1.4.2 e do Apêndice E."),
+  item("**Configurações de HTTPS** apontadas por `check --deploy` (HSTS, cookies seguros, redirecionamento SSL): não se aplicam à execução local em http://127.0.0.1 e devem ser ativadas apenas numa publicação na internet."),
   H2("6.2 Execução"),
   P("Com o ambiente virtual ativado, na raiz do projeto:"),
   ...codigo([
@@ -598,19 +603,39 @@ const testes = [
     "python manage.py test locacao.tests.test_services   # só as fórmulas",
     "python manage.py test locacao.tests.test_rules      # só as regras",
     "python manage.py test -v 2                     # lista cada teste executado",
+    "python manage.py test --shuffle                # ordem aleatória",
+    "pip install coverage                           # opcional: medir a cobertura",
+    "coverage run --source=locacao manage.py test && coverage report",
   ]),
   P("Saída esperada:"),
   ...codigo([
-    "Found 64 test(s).",
+    "Found 83 test(s).",
     "Creating test database for alias 'default'...",
     "System check identified no issues (0 silenced).",
-    "................................................................",
+    "...................................................................................",
     "----------------------------------------------------------------------",
-    "Ran 64 tests in 2.4s",
+    "Ran 83 tests in 13.2s",
     "",
     "OK",
   ]),
   P("O banco de testes é criado e destruído automaticamente; os dados de desenvolvimento (`db.sqlite3`) não são afetados. Os testes devem ser executados antes de cada commit e de cada Pull Request."),
+  H2("6.3 Teste de sistema (aceitação no navegador)"),
+  P("Roteiro executado no navegador Chromium, com o servidor rodando (`runserver`) e os dados do `seed`, cobrindo os cinco casos de uso de ponta a ponta. Pode ser repetido manualmente pelo avaliador seguindo a mesma sequência."),
+  ...tabela("Roteiro de teste de sistema e resultado", ["Passo", "Ação", "Resultado esperado", "Resultado"], [
+    ["1", "Abrir o sistema sem login; entrar com senha errada; entrar com atendente/locadora123", "Redireciona ao login; mostra “Usuário ou senha inválidos”; abre o painel com 5 indicadores", "OK"],
+    ["2", "UC02: cadastrar cliente com CPF 935.411.347-80 (com pontuação)", "“Cliente salvo com sucesso”", "OK"],
+    ["3", "UC01: cadastrar veículo com placa “tst-9e99”", "Veículo salvo com placa TST9E99", "OK"],
+    ["4", "UC03: buscar Econômico por 3 dias", "Veículo novo listado, valor estimado R$ 360,00", "OK"],
+    ["5", "UC03: reservar para o cliente novo", "Reserva confirmada com código RES-AAAA-XXXXXX", "OK"],
+    ["6", "RN06: repetir a mesma busca", "Veículo reservado não aparece mais", "OK"],
+    ["7", "UC04: registrar retirada com km menor que o do veículo; depois com o km correto", "Erro RN14; depois “Retirada registrada”, locação Em andamento", "OK"],
+    ["8", "UC05: devolver com meio tanque e calcular extrato", "Extrato com diárias, multa e combustível (R$ 150,00)", "OK"],
+    ["9", "UC05: marcar avaria sem descrição; descrever e confirmar", "Erro “Descreva a avaria”; depois devolução registrada, caução retida", "OK"],
+    ["10", "RN18: consultar o veículo", "Status Em manutenção", "OK"],
+    ["11", "RN17: devolver a locação atrasada do seed", "Extrato com multa “× 1,5”", "OK"],
+    ["12", "Abrir em tela de celular (375 px) e usar o menu", "Sem rolagem horizontal; menu recolhível abre", "OK"],
+    ["13", "Durante todo o roteiro", "Nenhum erro de JavaScript nem HTTP 500", "OK"],
+  ], [0.6, 3, 3, 0.8]),
 ];
 
 // 7 ------------------------------------------------------------------------- referências
@@ -705,6 +730,16 @@ const apendices = [
     ["RF11, RF12, RF13", "UC05", "RN16–RN19", "test_exemplo_do_documento_e_rn18_sem_avaria, test_rn18_avaria_*, test_rn16_*, test_rn19_*, test_atrasada_por_tempo"],
     ["RF01, RF14, RF15", "—", "—", "test_login_obrigatorio, test_paginas_carregam, test_ciclo_completo_pela_interface"],
   ], [1.4, 1, 1.6, 4]),
+  H2("Apêndice F — Registro de defeitos encontrados nos testes"),
+  P("Defeitos encontrados nos testes exploratórios e de sistema, todos corrigidos e protegidos por teste de regressão (o teste falha no código antigo e passa no corrigido)."),
+  ...tabela("Defeitos encontrados e corrigidos", ["#", "Defeito", "Correção", "Teste de regressão"], [
+    ["D1", "Erro 500 ao abrir a tela de nova reserva com identificador de veículo inválido na URL", "A tela volta para a busca de disponibilidade", "test_reserva_com_parametros_invalidos_volta_para_a_busca"],
+    ["D2", "Devolver no mesmo minuto da retirada dava erro RN16, porque a retirada guardava segundos e a tela trabalha com minutos", "Retirada gravada sem segundos; comparações com precisão de minuto", "test_devolucao_logo_apos_a_retirada"],
+    ["D3", "Prévia do extrato era exibida mesmo com data de devolução anterior à retirada", "A prévia valida data (RN16), km (RN16) e avaria antes de calcular", "test_devolucao_valida_data_km_e_avaria_antes_do_extrato"],
+    ["D4", "Placa digitada com hífen (ABC-1D23) era recusada por ter 8 caracteres", "Campo aceita hífen e minúsculas e normaliza para ABC1D23", "test_placa_com_hifen_e_minusculas_e_normalizada"],
+    ["D5", "Cliente podia ser cadastrado com data de nascimento no futuro", "Validação de data de nascimento no passado", "test_cliente_com_cpf_formatado_e_nascimento_futuro"],
+    ["D6", "Busca aceitava período no passado ou maior que 30 dias, e o erro só aparecia ao confirmar a reserva; no admin, CPF com pontuação e placa com hífen eram recusados e o status LOCADO podia ser definido à mão", "Busca aplica RN08, RN09 e RN10; o admin usa os mesmos formulários das telas", "test_busca_aplica_rn08_rn09_rn10, test_admin_usa_as_mesmas_validacoes"],
+  ], [0.5, 3.2, 2.4, 2.4]),
 ];
 
 // --------------------------------------------------------------------------- documento
