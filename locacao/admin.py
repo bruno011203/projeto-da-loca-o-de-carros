@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import ClienteBaseForm, VeiculoBaseForm
 from .models import Categoria, Cliente, Funcionario, Locacao, Reserva, Veiculo
 
 
@@ -11,6 +12,7 @@ class CategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Veiculo)
 class VeiculoAdmin(admin.ModelAdmin):
+    form = VeiculoBaseForm  # placa com hífen/minúsculas e status LOCADO bloqueado
     list_display = ("placa", "marca", "modelo", "ano_fabricacao", "categoria", "km_atual", "status")
     list_filter = ("status", "categoria", "marca")
     search_fields = ("placa", "chassi", "marca", "modelo")
@@ -18,6 +20,7 @@ class VeiculoAdmin(admin.ModelAdmin):
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
+    form = ClienteBaseForm  # CPF com pontuação e nascimento no passado
     list_display = ("nome", "cpf", "telefone", "cnh_categoria", "cnh_validade", "ativo")
     list_filter = ("ativo", "cnh_categoria")
     search_fields = ("nome", "cpf", "email", "cnh_numero")

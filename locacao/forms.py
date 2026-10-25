@@ -3,6 +3,7 @@ from datetime import timedelta
 from django import forms
 from django.utils import timezone
 
+from . import rules
 from .enums import NivelCombustivel, StatusVeiculo
 from .models import Categoria, Cliente, Veiculo
 from .validators import somente_digitos
@@ -46,20 +47,38 @@ class BootstrapMixin:
 
 # --------------------------------------------------------------------------- UC01 e UC02
 
-class ClienteForm(BootstrapMixin, forms.ModelForm):
+class ClienteBaseForm(forms.ModelForm):
+    """Validações do cliente, usadas pelas telas e pelo Django Admin."""
     cpf = forms.CharField(label="CPF", max_length=14, help_text="Com ou sem pontuação.")
 
     class Meta:
         model = Cliente
         fields = ["nome", "cpf", "data_nascimento", "email", "telefone", "endereco",
                   "cnh_numero", "cnh_categoria", "cnh_validade", "ativo"]
-        widgets = {"data_nascimento": DataInput(), "cnh_validade": DataInput()}
 
     def clean_cpf(self):
         return somente_digitos(self.cleaned_data["cpf"])
 
+    def clean_cnh_numero(self):
+        return somente_digitos(self.cleaned_data["cnh_numero"]) or self.cleaned_data["cnh_numero"]
 
-class VeiculoForm(BootstrapMixin, forms.ModelForm):
+    def clean_data_nascimento(self):
+        data = self.cleaned_data["data_nascimento"]
+        if data >= timezone.localdate():
+            raise forms.ValidationError("A data de nascimento deve estar no passado.")
+        return data
+
+
+class ClienteForm(BootstrapMixin, ClienteBaseForm):
+    class Meta(ClienteBaseForm.Meta):
+        widgets = {"data_nascimento": DataInput(), "cnh_validade": DataInput()}
+
+
+class VeiculoBaseForm(forms.ModelForm):
+    """Validações do veículo, usadas pelas telas e pelo Django Admin."""
+    # Aceita "ABC-1D23" e minúsculas; a normalização acontece em clean_placa.
+    placa = forms.CharField(max_length=8, help_text="ABC1234 ou ABC1D23 (com ou sem hífen).")
+
     class Meta:
         model = Veiculo
         fields = ["placa", "chassi", "marca", "modelo", "ano_fabricacao", "cor", "categoria",
@@ -86,6 +105,10 @@ class VeiculoForm(BootstrapMixin, forms.ModelForm):
         return km
 
 
+class VeiculoForm(BootstrapMixin, VeiculoBaseForm):
+    pass
+
+
 # --------------------------------------------------------------------------- UC03
 
 class BuscaDisponibilidadeForm(BootstrapMixin, forms.Form):
@@ -96,8 +119,12 @@ class BuscaDisponibilidadeForm(BootstrapMixin, forms.Form):
 
     def clean(self):
         dados = super().clean()
-        if dados.get("retirada") and dados.get("devolucao") and dados["devolucao"] <= dados["retirada"]:
-            raise forms.ValidationError("RN10: a devolução deve ser posterior à retirada.")
+        if dados.get("retirada") and dados.get("devolucao"):
+            # Mesmas regras de período da reserva (RN08, RN09, RN10), já na busca.
+            try:
+                rules.validar_periodo(dados["retirada"], dados["devolucao"], timezone.now())
+            except rules.RegraNegocioError as erro:
+                raise forms.ValidationError(str(erro))
         return dados
 
 

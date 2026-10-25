@@ -80,9 +80,14 @@ def validar_cliente(*, ativo, data_nascimento, cnh_categoria, cnh_validade,
 
 # --------------------------------------------------------------------------- reserva
 
+def inicio_do_minuto(momento):
+    """As telas trabalham com minutos; segundos não devem gerar erro (ex.: retirada "agora")."""
+    return momento.replace(second=0, microsecond=0)
+
+
 def validar_periodo(retirada, devolucao_prevista, agora):
     """RN09, RN10 e RN08."""
-    if retirada < agora:
+    if retirada < inicio_do_minuto(agora):
         raise RegraNegocioError("RN09", "a retirada prevista deve ser igual ou posterior ao momento da reserva.")
     if devolucao_prevista <= retirada:
         raise RegraNegocioError("RN10", "a devolução prevista deve ser posterior à retirada prevista.")
@@ -116,6 +121,12 @@ def validar_dados_saida(km_saida, combustivel_saida, km_atual_veiculo):
         raise RegraNegocioError("RN14", "informe a quilometragem e o nível de combustível de saída.")
     if km_saida < km_atual_veiculo:
         raise RegraNegocioError("RN14", "a quilometragem de saída não pode ser menor que a atual do veículo.")
+
+
+def validar_data_devolucao(data_retirada, devolucao_real, agora):
+    """A devolução real fica entre a retirada e o momento atual (precisão de minutos)."""
+    if devolucao_real < inicio_do_minuto(data_retirada) or devolucao_real > agora:
+        raise RegraNegocioError("RN16", "a data de devolução deve estar entre a retirada e o momento atual.")
 
 
 def validar_km_retorno(km_saida, km_retorno):

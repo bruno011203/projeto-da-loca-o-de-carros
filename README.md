@@ -46,8 +46,8 @@ Acesse <http://127.0.0.1:8000> e entre com um dos usuários criados pelo `seed`:
 python manage.py test
 ```
 
-São 64 testes: fórmulas de cálculo (`test_services.py`), regras de negócio puras
-(`test_rules.py`) e integração com banco e interface (`test_views.py`), incluindo o
+São 83 testes (99% de cobertura de código): fórmulas de cálculo (`test_services.py`), regras de negócio puras
+(`test_rules.py`) e integração com banco, telas e admin (`test_views.py`), incluindo o
 exemplo numérico do documento de regras (total de R$ 690,00).
 
 ## Estrutura
