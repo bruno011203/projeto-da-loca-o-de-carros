@@ -160,7 +160,7 @@ def registrar_retirada(*, atendente, km_saida, combustivel_saida, reserva=None,
     categoria = veiculo.categoria
     locacao = Locacao.objects.create(
         reserva=reserva, cliente=cliente, veiculo=veiculo, atendente=atendente,
-        data_retirada=agora, devolucao_prevista=devolucao_prevista,
+        data_retirada=rules.inicio_do_minuto(agora), devolucao_prevista=devolucao_prevista,
         km_saida=km_saida, combustivel_saida=combustivel_saida,
         valor_diaria_aplicado=categoria.valor_diaria,  # snapshot de preço
         valor_caucao=categoria.valor_caucao,           # RN15: caução registrada
@@ -196,8 +196,7 @@ def registrar_devolucao(locacao, *, km_retorno, combustivel_retorno, avaria=Fals
     locacao = Locacao.objects.select_for_update().select_related("veiculo__categoria").get(pk=locacao.pk)
     if locacao.status == StatusLocacao.FINALIZADA:
         raise RegraNegocioError("RN19", "locação finalizada não pode ser alterada.")
-    if devolucao_real < locacao.data_retirada or devolucao_real > agora:
-        raise RegraNegocioError("RN16", "a data de devolução deve estar entre a retirada e o momento atual.")
+    rules.validar_data_devolucao(locacao.data_retirada, devolucao_real, agora)
     rules.validar_km_retorno(locacao.km_saida, km_retorno)  # RN16
 
     extrato = apurar(locacao, combustivel_retorno, devolucao_real)

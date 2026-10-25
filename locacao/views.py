@@ -161,7 +161,9 @@ def _ler_data_hora(texto):
 @login_required
 def reserva_nova(request):
     dados = request.POST if request.method == "POST" else request.GET
-    veiculo = Veiculo.objects.select_related("categoria").filter(pk=dados.get("veiculo") or 0).first()
+    veiculo_id = dados.get("veiculo", "")
+    veiculo = (Veiculo.objects.select_related("categoria").filter(pk=veiculo_id).first()
+               if veiculo_id.isdigit() else None)
     retirada, devolucao = _ler_data_hora(dados.get("retirada")), _ler_data_hora(dados.get("devolucao"))
     if veiculo is None or retirada is None or devolucao is None or devolucao <= retirada:
         return redirect("locacao:disponibilidade")
@@ -300,19 +302,24 @@ def devolucao(request, pk):
     extrato = None
     if request.method == "POST" and form.is_valid():
         dados = form.cleaned_data
-        if "confirmar" in request.POST:
-            try:
-                operacoes.registrar_devolucao(locacao, **dados)
-            except RegraNegocioError as erro:
-                messages.error(request, str(erro))
-            else:
-                messages.success(request, "Devolução registrada e locação finalizada.")
-                return redirect("locacao:locacao_detalhe", pk=pk)
+        agora = timezone.now()
+        try:
+            rules.validar_data_devolucao(locacao.data_retirada, dados["devolucao_real"], agora)
+        except RegraNegocioError as erro:
+            form.add_error("devolucao_real", str(erro))
         try:
             rules.validar_km_retorno(locacao.km_saida, dados["km_retorno"])
         except RegraNegocioError as erro:
             form.add_error("km_retorno", str(erro))
-        else:
+        if form.is_valid():
+            if "confirmar" in request.POST:
+                try:
+                    operacoes.registrar_devolucao(locacao, agora=agora, **dados)
+                except RegraNegocioError as erro:
+                    messages.error(request, str(erro))
+                else:
+                    messages.success(request, "Devolução registrada e locação finalizada.")
+                    return redirect("locacao:locacao_detalhe", pk=pk)
             extrato = operacoes.apurar(locacao, dados["combustivel_retorno"], dados["devolucao_real"])
             extrato["avaria"] = dados["avaria"]
     return render(request, "locacao/devolucao.html", {"form": form, "locacao": locacao, "extrato": extrato})
