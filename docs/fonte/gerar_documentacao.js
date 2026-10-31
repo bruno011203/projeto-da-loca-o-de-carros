@@ -121,17 +121,34 @@ function tabela(titulo, cabecalho, linhas, pesos) {
 
 const AUTOR = "Bruno Pinheiro Dos Santos";
 const TITULO = "Sistema de Gestão para Locadora de Veículos";
-const VERSAO = "Versão 1.1";
+const VERSAO = "Versão 1.2";
+
+// Integrantes do grupo e o pacote de trabalho de cada um (seção 5.3).
+const INTEGRANTES = [
+  ["P1", "Nicole Terto de Moraes"],
+  ["P2", "Paula Araújo Sales"],
+  ["P3", "Clara Luiza Pinheiro Santana"],
+  ["P4", "Phelipe Gonzaga dos Santos"],
+  ["P5", "Vitor Rodrigues Barbosa"],
+  ["P6", "Bruno Pinheiro Dos Santos"],
+  ["P7", "Pedro Marcelo Simplicio Braga"],
+  ["P8", "Enzo Moraes Ertner de Oliveira"],
+  ["P9", "João Vitor Campos Burger da Silva"],
+];
+const integrante = (pacote) => INTEGRANTES.find(([p]) => p === pacote)[1];
+const NOMES_EM_ORDEM_ALFABETICA = INTEGRANTES.map(([, nome]) => nome)
+  .sort((a, b) => a.localeCompare(b, "pt-BR"));
 
 const capa = [
-  new Paragraph({ children: [new TextRun({ text: AUTOR.toUpperCase(), bold: true, size: 28 })],
-    alignment: AlignmentType.CENTER, spacing: { after: 4200 } }),
+  ...NOMES_EM_ORDEM_ALFABETICA.map((nome, i, lista) => new Paragraph({
+    children: [new TextRun({ text: nome.toUpperCase(), bold: true, size: 24 })],
+    alignment: AlignmentType.CENTER, spacing: { after: i === lista.length - 1 ? 2600 : 60 } })),
   new Paragraph({ children: [new TextRun({ text: TITULO, bold: true, size: 40, color: COR_TITULO })],
     alignment: AlignmentType.CENTER, spacing: { after: 240 } }),
   new Paragraph({ children: [new TextRun({ text: "Documentação do Projeto de Software", size: 26 })],
     alignment: AlignmentType.CENTER, spacing: { after: 240 } }),
   new Paragraph({ children: [new TextRun({ text: VERSAO, size: 26 })],
-    alignment: AlignmentType.CENTER, spacing: { after: 5200 } }),
+    alignment: AlignmentType.CENTER, spacing: { after: 3400 } }),
   new Paragraph({ children: [new TextRun({ text: "São Paulo", size: 24 })], alignment: AlignmentType.CENTER }),
   new Paragraph({ children: [new TextRun({ text: "2026", size: 24 })], alignment: AlignmentType.CENTER }),
 ];
@@ -144,6 +161,7 @@ const historico = [
     ["0.2", "10/10/2026", AUTOR, "Modelo de domínio, regras de negócio, casos de uso, diagramas e ADRs."],
     ["1.0", "11/10/2026", AUTOR, "Implementação concluída (UC01–UC05), protótipo de alta fidelidade, estratégia de testes e revisão final."],
     ["1.1", "25/10/2026", AUTOR, "Rodada de testes exploratórios e de sistema; 6 defeitos corrigidos; 83 testes e 99% de cobertura."],
+    ["1.2", "31/10/2026", AUTOR, "Integrantes do grupo na capa e divisão do trabalho em 9 pacotes (seção 5.3)."],
   ], [1, 1.4, 2.6, 5]),
   new Paragraph({ children: [new TextRun({ text: "SUMÁRIO", bold: true, size: 26 })],
     alignment: AlignmentType.CENTER, spacing: { before: 400, after: 240 }, pageBreakBefore: true }),
@@ -184,6 +202,7 @@ const visaoGeral = [
     ["Produto", TITULO],
     ["Tipo", "Aplicação web (navegador de computador, tablet ou smartphone)"],
     ["Usuários", "Atendentes e gerentes da locadora"],
+    ["Equipe", "9 integrantes em 3 squads (Fundação, Domínio e Telas), um pacote de trabalho por pessoa (seção 5.3)"],
     ["Stack", "Python 3.12+ · Django 5.2 LTS · SQLite · Bootstrap 5 · Mermaid"],
     ["Casos de uso", "UC01 a UC05 (ciclo reserva → retirada → devolução)"],
     ["Regras de negócio", "19 (RN01 a RN19), todas implementadas e rastreáveis até teste"],
@@ -576,6 +595,93 @@ const desenvolvimento = [
     ["fix:", "Correção de defeito", "fix: impede devolução com km menor que o de saída"],
     ["chore:", "Configuração e manutenção", "chore: estrutura inicial do projeto"],
   ], [1, 2, 4.2]),
+  H2("5.3 Divisão do Trabalho em Equipe"),
+  P("O desenvolvimento foi dividido entre os 9 integrantes do grupo em **9 pacotes de trabalho**, um por pessoa, organizados em **3 squads de 3** (Fundação, Domínio e Telas). Cada pacote tem arquivos próprios, o que reduz conflitos no Git, e só é considerado pronto com `python manage.py test` verde e um Pull Request revisado. Como o objetivo também é aprender, cada pessoa reescreve a sua parte guiada pela documentação e pelos testes, no repositório do time (`joaovitorcb86/locadora-veiculos`); este repositório serve de referência."),
+  ...tabela("Pacotes de trabalho e integrantes", ["Pacote", "Integrante", "Squad", "Entrega principal", "Nível"], [
+    ["P1", integrante("P1"), "Fundação", "Git, esqueleto do projeto, login, layout base, painel do dia, listas", "Média"],
+    ["P2", integrante("P2"), "Fundação", "Modelos Categoria, Veículo e Reserva; validadores de placa e chassi; admin", "Média"],
+    ["P3", integrante("P3"), "Fundação", "Modelos Cliente (com CNH), Funcionário e Locação; validador de CPF; admin; comando seed", "Média"],
+    ["P4", integrante("P4"), "Domínio", "Enumerações e fórmulas de cálculo (services.py) com testes", "Fácil"],
+    ["P5", integrante("P5"), "Domínio", "Regras de cliente, período, cancelamento e expiração (RN01–RN04, RN08–RN12) com testes", "Fácil"],
+    ["P6", integrante("P6"), "Domínio", "Sobreposição RN06, regras de retirada e devolução (RN13, RN14, RN16) e teste ponta a ponta do ciclo completo", "Difícil"],
+    ["P7", integrante("P7"), "Telas", "UC01 Manter veículo, UC02 Manter cliente e histórico do cliente", "Fácil"],
+    ["P8", integrante("P8"), "Telas", "UC03 Disponibilidade, reserva, cancelamento e expiração", "Difícil"],
+    ["P9", integrante("P9"), "Telas", "UC04 Retirada e UC05 Devolução com extrato", "Difícil"],
+  ], [0.95, 2.3, 1, 3.4, 0.95]),
+
+  H3("5.3.1 Squads e revisão cruzada"),
+  ...tabela("Squads", ["Squad", "Pacotes", "Integrantes", "Revisa o código de"], [
+    ["Fundação", "P1, P2, P3", `${integrante("P1")}, ${integrante("P2")}, ${integrante("P3")}`, "Domínio"],
+    ["Domínio", "P4, P5, P6", `${integrante("P4")}, ${integrante("P5")}, ${integrante("P6")}`, "Telas"],
+    ["Telas", "P7, P8, P9", `${integrante("P7")}, ${integrante("P8")}, ${integrante("P9")}`, "Fundação"],
+  ], [1.1, 1.1, 4.2, 1.4]),
+  P("Dentro do squad as pessoas se ajudam; entre squads, cada um revisa o código do outro. Quem revisa precisa conseguir explicar o código; se não entendeu, o autor explica e melhora o nome ou o comentário. O P1 aprova e faz o merge dos Pull Requests em `develop`."),
+
+  H3("5.3.2 Fases e dependências"),
+  P("As regras e as fórmulas são funções puras (não usam banco), então o squad Domínio começa junto com a Fundação e ninguém espera ninguém na Fase 1."),
+  ...tabela("Fases do trabalho em equipe", ["Fase", "Quem", "O que acontece", "Só avança quando"], [
+    ["0. Preparação", "Todos", "P1 cria o projeto Django, o repositório e os arquivos com funções vazias (stubs). Todos instalam Python e VS Code e clonam o repositório.", "Todos rodam runserver e test na própria máquina"],
+    ["1. Base", "P2, P3 (modelos); P4, P5, P6 (funções puras); P1; P7", "Cada um implementa o seu arquivo. O Domínio escreve o teste primeiro e depois o código. P1 monta login e layout; P7 começa os formulários.", "Modelos migrados, testes de services e rules verdes, PRs revisados e mesclados em develop"],
+    ["2. Casos de uso", "P7, P8, P9, P1", "Telas e operações (operacoes_*.py) que juntam modelos, regras e fórmulas. P7 e P8 primeiro, P9 depois (a retirada precisa de uma reserva).", "Cada caso de uso funciona no navegador e tem teste de integração"],
+    ["3. Integração", "Todos", "Rodar o ciclo completo (reservar, retirar, devolver com atraso) e conferir o exemplo de R$ 690,00; caçar bugs e preparar a apresentação.", "Todos os testes passam e o exemplo numérico bate"],
+  ], [1.2, 1.7, 3.6, 2]),
+
+  H3("5.3.3 Pacotes: dependências e critério de pronto"),
+  ...tabela("Dependências e critério de pronto de cada pacote", ["Pacote", "Integrante", "Depende de", "Pronto quando"], [
+    ["P1", integrante("P1"), "Ninguém na Fase 0; painel e listas esperam os modelos de P2 e P3", "Todos clonam e rodam o servidor; telas exigem login; o painel mostra os números com os dados de exemplo"],
+    ["P2", integrante("P2"), "enums.py do P4 (1º dia)", "Cadastra e filtra veículos pelo admin; placa duplicada ou inválida é recusada; testes dos validadores passam"],
+    ["P3", integrante("P3"), "enums.py do P4", "CPF inválido ou repetido é recusado; alterar locação FINALIZADA dá erro (RN19); o seed popula o banco"],
+    ["P4", integrante("P4"), "Ninguém", "O teste do exemplo numérico dá exatamente R$ 690,00"],
+    ["P5", integrante("P5"), "RegraNegocioError do P1", "Cada regra tem teste que passa e teste que falha; a mensagem começa com o código (ex.: \"RN01: ...\")"],
+    ["P6", integrante("P6"), "RegraNegocioError do P1; o teste ponta a ponta usa as partes de P7, P8 e P9", "Os 8 cenários de sobreposição passam, inclusive períodos que só se encostam; o ciclo completo fecha em R$ 690,00"],
+    ["P7", integrante("P7"), "Modelos de P2 e P3 (pode começar pelo HTML)", "Cadastra e edita pela tela e pelo admin; telas funcionam em 360 px de largura"],
+    ["P8", integrante("P8"), "P2, P3, P4, P5 e P6", "Reserva sobreposta é recusada com \"RN06: ...\"; cancelar com menos de 24 h cobra 20% de multa"],
+    ["P9", integrante("P9"), "P8, P4, P6 e P3", "A devolução atrasada do exemplo mostra R$ 690,00 no extrato e a caução de R$ 500,00 devolvida"],
+  ], [0.95, 2, 2.4, 3.5]),
+  P("Para que ninguém fique parado esperando outro pacote, os nomes e parâmetros das funções foram combinados na Fase 0 e publicados como stubs (funções que só levantam `NotImplementedError`). Os testes que dependem de uma parte ainda não entregue são **pulados** com o motivo (por exemplo, \"aguardando P8\") e passam a rodar sozinhos quando a parte é entregue. Assim a suíte continua verde durante todo o desenvolvimento."),
+
+  H3("5.3.4 Contratos entre pacotes"),
+  ...tabela("Funções combinadas entre os pacotes", ["Arquivo", "Funções", "Dono", "Quem usa"], [
+    ["enums.py", "Os seis enums (status, categoria de CNH, combustível, perfil)", "P4", "Todos"],
+    ["services.py", "diarias_contratadas, valor_previsto, diarias_de_atraso, valor_multa, taxa_combustivel, valor_total, multa_cancelamento", "P4", "P8, P9"],
+    ["rules_reserva.py", "validar_idade, validar_cnh, validar_cliente_ativo, validar_sem_atraso, validar_periodo, cancelamento_com_multa, reserva_expirada", "P5", "P8, P9"],
+    ["rules_operacao.py", "ha_sobreposicao, validar_reserva_convertivel, validar_dados_saida, validar_km_retorno", "P6", "P8, P9"],
+    ["models_frota.py", "Categoria, Veiculo, Reserva", "P2", "Todos"],
+    ["models_clientes.py", "Cliente, Funcionario, Locacao", "P3", "Todos"],
+    ["operacoes_reserva.py", "veiculos_disponiveis, criar_reserva, cancelar_reserva, atualizar_status_temporais", "P8", "P1 (painel), P9"],
+    ["operacoes_locacao.py", "registrar_retirada, registrar_devolucao", "P9", "P1 (listas)"],
+  ], [1.8, 4.2, 0.7, 1.4]),
+  P("Regra de convivência: cada arquivo tem um dono. Quem precisa de uma mudança em arquivo alheio abre uma conversa ou um comentário no Pull Request do dono, em vez de editar direto."),
+
+  H3("5.3.5 Responsáveis por regra e requisito"),
+  P("As 19 regras de negócio e os 16 requisitos funcionais têm pelo menos um dono. Quando há dois, o primeiro escreve a regra e o segundo a usa."),
+  ...tabela("Cobertura das regras e requisitos por pacote", ["Regra ou requisito", "Pacotes"], [
+    ["RN01, RN02, RN04, RN08, RN09, RN10 (validações)", "P5 escreve; P8 usa"],
+    ["RN03 cliente único e ativo", "P3 (CPF único) e P5 (cliente ativo)"],
+    ["RN05, RN07 (veículo disponível)", "P8"],
+    ["RN06 sobreposição", "P6 escreve; P8 usa"],
+    ["RN11 cancelamento", "P5 (quando há multa) e P4 (valor); P8 usa"],
+    ["RN12 expiração", "P5 (regra) e P8 (atualização em lote)"],
+    ["RN13, RN14, RN16", "P6 escreve; P9 usa"],
+    ["RN15, RN18", "P9"],
+    ["RN17 atraso e multa", "P4 (fórmula) e P9 (aplica na devolução)"],
+    ["RN19 locação imutável", "P3"],
+    ["RF01, RF14, RF15", "P1"],
+    ["RF03", "P2"],
+    ["RF02, RF04, RF16", "P7"],
+    ["RF05, RF06, RF07, RF08, RF13", "P8"],
+    ["RF09, RF10, RF11, RF12", "P9"],
+  ], [3.5, 3.5]),
+
+  H3("5.3.6 Regras de colaboração"),
+  item("**Teste primeiro (Domínio):** P4, P5 e P6 escrevem o teste antes da função; a documentação já diz o resultado esperado de cada regra."),
+  item("**Uma branch por pacote**, criada a partir de `develop`: `feature/p4-services`, `feature/p6-dominio`, `feature/p8-reserva`... Commits pequenos no padrão Conventional Commits, em português."),
+  item("**Pull Request com revisão cruzada** entre squads (seção 5.3.1)."),
+  item("**Regra de ouro dos testes:** não se abre Pull Request com `python manage.py test` vermelho."),
+  item("**Pedir ajuda cedo:** travou por mais de 30 minutos, chama o squad ou a pessoa de apoio. Na Fase 2, P5 apoia P8 e P4 apoia P9."),
+  item("**Rodízio de explicação:** ao fim de cada fase, duas pessoas sorteadas apresentam em 5 minutos o que fizeram e por quê."),
+  item("**IA como tutor:** pode-se perguntar o que um erro significa ou pedir a explicação de uma linha, mas não entregar código sem entender."),
+  item("**Rotina:** reunião de 15 minutos em pé, 2 a 3 vezes por semana: o que fiz, o que vou fazer, onde estou travado."),
 ];
 
 // 6 ------------------------------------------------------------------------- testes
@@ -652,6 +758,7 @@ const referencias = [
   P("NYGARD, Michael. **Documenting architecture decisions**. 2011. Disponível em: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions. Acesso em: 11 out. 2026."),
   P("PYTHON SOFTWARE FOUNDATION. **PEP 8 – Style Guide for Python Code**. Disponível em: https://peps.python.org/pep-0008/. Acesso em: 11 out. 2026."),
   P("PYTHON SOFTWARE FOUNDATION. **decimal — Decimal fixed point and floating point arithmetic**. Disponível em: https://docs.python.org/3/library/decimal.html. Acesso em: 11 out. 2026."),
+  P("SILVA, João Vitor Campos Burger da. **Plano de divisão do projeto**: sistema de locadora (9 pessoas). Documento interno do grupo, 15 out. 2026."),
   P("SOMMERVILLE, Ian. **Engenharia de software**. 10. ed. São Paulo: Pearson, 2018."),
   P("VOCKE, Ham. **The practical test pyramid**. 2018. Disponível em: https://martinfowler.com/articles/practical-test-pyramid.html. Acesso em: 11 out. 2026."),
   H3("Recursos do projeto"),
