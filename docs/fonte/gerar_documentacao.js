@@ -1,15 +1,19 @@
-// Gera docs/Documentacao_Final.docx a partir do conteúdo abaixo.
+// Gera docs/Documentacao_Final.docx a partir do conteúdo abaixo, no padrão ABNT
+// (NBR 14724 para o trabalho, NBR 6027 para o sumário).
 // Uso: npm install docx && node docs/fonte/gerar_documentacao.js
+// Os números de página do sumário vêm de docs/fonte/sumario_paginas.json. Depois de mudar
+// o conteúdo, rode `python docs/fonte/atualizar_sumario.py` (usa LibreOffice e pdftotext)
+// para recalcular os números.
 const fs = require("fs");
 const path = require("path");
 const {
-  AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, Packer,
-  PageBreak, PageNumber, Paragraph, ShadingType, Table, TableCell, TableOfContents, TableRow,
-  TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, LevelFormat, Packer,
+  PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
 } = require("docx");
 
 const RAIZ = path.resolve(__dirname, "..");
 const SAIDA = path.join(RAIZ, "Documentacao_Final.docx");
+const ARQUIVO_PAGINAS = path.join(__dirname, "sumario_paginas.json");
 
 // A4 com margens ABNT (3 cm superior/esquerda, 2 cm inferior/direita)
 const PAGINA = { width: 11906, height: 16838 };
@@ -17,7 +21,7 @@ const MARGEM = { top: 1701, left: 1701, bottom: 1134, right: 1134 };
 const LARGURA = PAGINA.width - MARGEM.left - MARGEM.right; // 9071 DXA
 const LARGURA_PX = 600;
 const FONTE = "Arial";
-const COR_TITULO = "1F3864";
+const COR_TITULO = "000000";   // ABNT: texto e títulos em preto
 const COR_CABECALHO = "D9E2F3";
 const BORDA = { style: BorderStyle.SINGLE, size: 4, color: "8EA9DB" };
 
@@ -35,9 +39,16 @@ function runs(texto, base = {}) {
 const P = (texto, opts = {}) => new Paragraph({
   children: runs(texto), alignment: AlignmentType.JUSTIFIED, spacing: { after: 120, line: 360 }, ...opts,
 });
-const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)], pageBreakBefore: true });
-const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)] });
-const H3 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(t)] });
+// Cada título é registrado, na ordem do documento, para montar o sumário (NBR 6027).
+const TITULOS = [];
+const registrar = (nivel, texto) => { TITULOS.push({ nivel, texto }); return texto; };
+const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(registrar(1, t))],
+  pageBreakBefore: true });
+// Título sem indicativo numérico (referências e apêndices): centralizado, como pede a NBR 14724.
+const H1sem = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(registrar(1, t))],
+  pageBreakBefore: true, alignment: AlignmentType.CENTER });
+const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(registrar(2, t))] });
+const H3 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(registrar(3, t))] });
 const item = (t, nivel = 0) => new Paragraph({
   children: runs(t), numbering: { reference: "marcadores", level: nivel }, spacing: { after: 60, line: 300 },
 });
@@ -81,7 +92,7 @@ function figura(relativo, titulo, { largura = LARGURA_PX, alturaMax = 760 } = {}
         altText: { title: titulo, description: titulo, name: path.basename(relativo) } })],
       alignment: AlignmentType.CENTER, keepNext: true,
     }),
-    fonte("elaborado pelo autor (" + relativo.replace(/\\/g, "/") + ")."),
+    fonte("elaborado pelos autores (" + relativo.replace(/\\/g, "/") + ")."),
   ];
 }
 
@@ -121,7 +132,6 @@ function tabela(titulo, cabecalho, linhas, pesos) {
 
 const AUTOR = "Bruno Pinheiro Dos Santos";
 const TITULO = "Sistema de Gestão para Locadora de Veículos";
-const VERSAO = "Versão 1.2";
 
 // Integrantes do grupo e o pacote de trabalho de cada um (seção 5.3).
 const INTEGRANTES = [
@@ -139,36 +149,91 @@ const integrante = (pacote) => INTEGRANTES.find(([p]) => p === pacote)[1];
 const NOMES_EM_ORDEM_ALFABETICA = INTEGRANTES.map(([, nome]) => nome)
   .sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-const capa = [
-  ...NOMES_EM_ORDEM_ALFABETICA.map((nome, i, lista) => new Paragraph({
-    children: [new TextRun({ text: nome.toUpperCase(), bold: true, size: 24 })],
-    alignment: AlignmentType.CENTER, spacing: { after: i === lista.length - 1 ? 2600 : 60 } })),
-  new Paragraph({ children: [new TextRun({ text: TITULO, bold: true, size: 40, color: COR_TITULO })],
-    alignment: AlignmentType.CENTER, spacing: { after: 240 } }),
-  new Paragraph({ children: [new TextRun({ text: "Documentação do Projeto de Software", size: 26 })],
-    alignment: AlignmentType.CENTER, spacing: { after: 240 } }),
-  new Paragraph({ children: [new TextRun({ text: VERSAO, size: 26 })],
-    alignment: AlignmentType.CENTER, spacing: { after: 3400 } }),
-  new Paragraph({ children: [new TextRun({ text: "São Paulo", size: 24 })], alignment: AlignmentType.CENTER }),
-  new Paragraph({ children: [new TextRun({ text: "2026", size: 24 })], alignment: AlignmentType.CENTER }),
+const INSTITUICAO = "Universidade Santo Amaro – UNISA";
+const CURSOS = "Engenharia de Software e Engenharia de Computação";
+const PROFESSOR = "Prof. Rafael Guem Murakami";
+const LOCAL = "São Paulo";
+const ANO = "2026";
+const SUBTITULO = "documentação do projeto de software";
+
+// Linha centralizada em fonte 12 (ABNT), com espaço depois (em DXA: 240 = uma linha).
+const linha = (texto, depois = 0, extra = {}) => new Paragraph({
+  children: [new TextRun({ text: texto, size: 24, ...extra })],
+  alignment: AlignmentType.CENTER, spacing: { after: depois, line: 240 },
+});
+const autores = (depois) => NOMES_EM_ORDEM_ALFABETICA.map((nome, i, lista) =>
+  linha(nome.toUpperCase(), i === lista.length - 1 ? depois : 0, { bold: true }));
+const tituloESubtitulo = (depois) => [
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: depois, line: 360 }, children: [
+    new TextRun({ text: TITULO.toUpperCase() + ": ", bold: true, size: 24 }),
+    new TextRun({ text: SUBTITULO, size: 24 }),
+  ] }),
 ];
 
-const historico = [
-  new Paragraph({ children: [new TextRun({ text: "HISTÓRICO DE VERSÕES", bold: true, size: 26 })],
-    alignment: AlignmentType.CENTER, spacing: { after: 240 }, pageBreakBefore: true }),
-  ...tabela("Histórico de versões do documento", ["Versão", "Data", "Autor", "Descrição"], [
-    ["0.1", "05/10/2026", AUTOR, "Visão geral, problemática, requisitos e protótipo de baixa fidelidade."],
-    ["0.2", "10/10/2026", AUTOR, "Modelo de domínio, regras de negócio, casos de uso, diagramas e ADRs."],
-    ["0.3", "15/10/2026", AUTOR, "Stack, ambiente de desenvolvimento e divisão do trabalho em 9 pacotes (seção 5.3)."],
-    ["1.0", "25/10/2026", AUTOR, "Implementação concluída (UC01–UC05) e estratégia de testes."],
-    ["1.1", "28/10/2026", AUTOR, "Rodada de testes exploratórios e de sistema; 6 defeitos corrigidos; 83 testes e 99% de cobertura."],
-    ["1.2", "31/10/2026", AUTOR, "Integrantes na capa, cronograma de 30 dias, protótipo de alta fidelidade e revisão final."],
-  ], [1, 1.4, 2.6, 5]),
-  new Paragraph({ children: [new TextRun({ text: "SUMÁRIO", bold: true, size: 26 })],
-    alignment: AlignmentType.CENTER, spacing: { before: 400, after: 240 }, pageBreakBefore: true }),
-  new TableOfContents("Sumário", { hyperlink: true, headingStyleRange: "1-3" }),
-  P("Observação: caso o sumário apareça vazio, clique sobre ele com o botão direito e escolha “Atualizar campo” (Word) ou use Ferramentas → Atualizar → Índices (LibreOffice).", { alignment: AlignmentType.LEFT }),
+// Capa (NBR 14724): instituição, autores, título: subtítulo, local e ano.
+const capa = [
+  linha(INSTITUICAO.toUpperCase(), 0, { bold: true }),
+  linha(CURSOS.toUpperCase(), 2600, { bold: true }),
+  ...autores(3000),
+  ...tituloESubtitulo(4300),
+  linha(LOCAL),
+  linha(ANO),
 ];
+
+// Folha de rosto: autores, título: subtítulo, natureza do trabalho (recuada 8 cm), local e ano.
+const folhaDeRosto = [
+  ...autores(3200),
+  ...tituloESubtitulo(1200),
+  new Paragraph({ indent: { left: 4536 }, alignment: AlignmentType.JUSTIFIED, spacing: { after: 240, line: 240 },
+    children: [new TextRun({ size: 20, text: `Documentação de projeto de software apresentada aos cursos de ${CURSOS} da ${INSTITUICAO}, como requisito parcial de avaliação.` })] }),
+  new Paragraph({ indent: { left: 4536 }, spacing: { after: 3600, line: 240 },
+    children: [new TextRun({ size: 20, text: `Professor: ${PROFESSOR}.` })] }),
+  linha(LOCAL),
+  linha(ANO),
+];
+
+// Resumo e abstract (NBR 6028): parágrafo único, espaçamento simples, seguido das palavras-chave.
+const tituloPreTextual = (texto) => new Paragraph({ pageBreakBefore: true, alignment: AlignmentType.CENTER,
+  spacing: { after: 480 }, children: [new TextRun({ text: texto, bold: true, size: 24 })] });
+const resumoEm = (titulo, texto, rotulo, palavras) => [
+  tituloPreTextual(titulo),
+  new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 360, line: 240 },
+    children: [new TextRun({ text: texto, size: 24 })] }),
+  new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { line: 240 }, children: [
+    new TextRun({ text: rotulo + ": ", bold: true, size: 24 }), new TextRun({ text: palavras, size: 24 })] }),
+];
+const resumo = resumoEm("RESUMO",
+  "Este trabalho apresenta o projeto e a implementação de um sistema web de gestão para uma locadora de veículos, desenvolvido por uma equipe de nove integrantes em 30 dias. O sistema controla o ciclo completo de uma locação: consulta de disponibilidade, reserva, retirada e devolução do veículo, com apuração automática de diárias, multa por atraso e taxa de combustível. A solução foi construída em Python com o framework Django 5.2, banco de dados SQLite e interface em Bootstrap 5, em uma arquitetura em camadas na qual as dezenove regras de negócio e as cinco fórmulas de cálculo foram isoladas em funções puras. A modelagem do domínio resultou em sete entidades e cinco casos de uso, documentados com diagramas de classes, de casos de uso, de sequência e de estados, e as principais escolhas técnicas foram registradas como decisões arquiteturais. O trabalho foi dividido em nove pacotes, organizados em três equipes. A qualidade foi verificada por 83 testes automatizados, com 99% de cobertura de código, e por um teste de sistema no navegador, que reproduziu o exemplo numérico de referência e permitiu encontrar e corrigir seis defeitos antes da entrega.",
+  "Palavras-chave", "Locadora de veículos. Django. Regras de negócio. Testes automatizados. Engenharia de software.");
+const abstract = resumoEm("ABSTRACT",
+  "This work presents the design and implementation of a web-based management system for a car rental company, developed by a team of nine members in 30 days. The system handles the complete rental cycle: availability search, reservation, vehicle pickup and return, with automatic calculation of daily rates, late fees and fuel charges. The solution was built in Python with the Django 5.2 framework, an SQLite database and a Bootstrap 5 interface, in a layered architecture in which the nineteen business rules and the five calculation formulas were isolated as pure functions. Domain modeling resulted in seven entities and five use cases, documented with class, use case, sequence and state diagrams, and the main technical choices were recorded as architecture decisions. The work was divided into nine packages, organized into three teams. Quality was verified by 83 automated tests, with 99% code coverage, and by a system test in the browser, which reproduced the reference numerical example and made it possible to find and fix six defects before delivery.",
+  "Keywords", "Car rental. Django. Business rules. Automated testing. Software engineering.");
+
+// Sumário (NBR 6027): primárias em maiúsculas e negrito, secundárias em negrito, terciárias
+// normais; indicativo à esquerda, título alinhado depois do indicativo mais longo e linha
+// pontilhada até a página. Só entram títulos numerados e os pós-textuais (referências, apêndices).
+const RECUO_TITULO = 1000;
+function montarSumario(paginas) {
+  const entra = ({ nivel, texto }) => nivel === 1 || /^\d/.test(texto) || texto.startsWith("APÊNDICE");
+  return [
+    tituloPreTextual("SUMÁRIO"),
+    ...TITULOS.filter(entra).map(({ nivel, texto }) => {
+      const m = texto.match(/^(\d+(?:\.\d+)*)\s+(.*)$/);
+      const pagina = String(paginas[texto] ?? "00");
+      const negrito = nivel <= 2;
+      const conteudo = m ? `${m[1]}\t${m[2]}\t${pagina}` : `${texto}\t${pagina}`;
+      return new Paragraph({
+        spacing: { before: nivel === 1 ? 120 : 0, after: 60, line: 300 },
+        indent: m ? { left: RECUO_TITULO, hanging: RECUO_TITULO } : undefined,
+        tabStops: [
+          ...(m ? [{ type: TabStopType.LEFT, position: RECUO_TITULO }] : []),
+          { type: TabStopType.RIGHT, position: LARGURA, leader: "dot" },
+        ],
+        children: [new TextRun({ text: conteudo, bold: negrito, size: 24 })],
+      });
+    }),
+  ];
+}
 
 // 1 ------------------------------------------------------------------------- visão geral
 const RN = [
@@ -750,7 +815,7 @@ const testes = [
 
 // 7 ------------------------------------------------------------------------- referências
 const referencias = [
-  H1("7 REFERÊNCIAS E RECURSOS"),
+  H1sem("REFERÊNCIAS"),
   P("ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **NBR 14724**: informação e documentação — trabalhos acadêmicos — apresentação. Rio de Janeiro: ABNT, 2011."),
   P("BOOTSTRAP. **Bootstrap 5.3 documentation**. Disponível em: https://getbootstrap.com/docs/5.3/. Acesso em: 11 out. 2026."),
   P("CONVENTIONAL COMMITS. **Conventional Commits 1.0.0**. Disponível em: https://www.conventionalcommits.org/pt-br/v1.0.0/. Acesso em: 11 out. 2026."),
@@ -765,7 +830,7 @@ const referencias = [
   P("SILVA, João Vitor Campos Burger da. **Plano de divisão do projeto**: sistema de locadora (9 pessoas). Documento interno do grupo, 15 out. 2026."),
   P("SOMMERVILLE, Ian. **Engenharia de software**. 10. ed. São Paulo: Pearson, 2018."),
   P("VOCKE, Ham. **The practical test pyramid**. 2018. Disponível em: https://martinfowler.com/articles/practical-test-pyramid.html. Acesso em: 11 out. 2026."),
-  H3("Recursos do projeto"),
+  P("**Recursos do projeto**", { spacing: { before: 240, after: 120 } }),
   item("Repositório: https://github.com/bruno011203/projeto-da-loca-o-de-carros"),
   item("Documentos de base: “Locadora de Veículos — Modelo de Domínio e Regras de Negócio” e “Stack e passo a passo” (10/10/2026)."),
   item("Fontes dos diagramas: `docs/diagramas/*.mmd`; protótipos: `docs/prototipos/`; gerador deste documento: `docs/fonte/gerar_documentacao.js`."),
@@ -773,8 +838,8 @@ const referencias = [
 
 // 8 ------------------------------------------------------------------------- apêndices
 const apendices = [
-  H1("8 APÊNDICES"),
-  H2("Apêndice A — Trabalho futuro"),
+  H1sem("APÊNDICES"),
+  H2("APÊNDICE A – TRABALHO FUTURO"),
   ...tabela("Itens fora do escopo e proposta de evolução", ["Item", "Proposta"], [
     ["Pagamento", "Integração com gateway (cartão/Pix) para caução e cobrança final, com estorno automático da caução."],
     ["Permissões por perfil", "Restringir cadastro de categorias e preços ao GERENTE com grupos/permissões do Django; o perfil já está modelado em Funcionario."],
@@ -785,10 +850,10 @@ const apendices = [
     ["API REST", "Django REST Framework para aplicativo móvel e parceiros."],
     ["Agendador", "Substituir a avaliação preguiçosa (ADR-006) por tarefa agendada, caso surjam notificações por tempo."],
   ], [1.4, 4.4]),
-  H2("Apêndice B — Modelo físico do banco de dados"),
+  H2("APÊNDICE B – MODELO FÍSICO DO BANCO DE DADOS"),
   P("Tabelas geradas pelas migrations do Django (prefixo `locacao_`). A tabela `auth_user` pertence ao módulo de autenticação do Django."),
   ...figura("diagramas/07_banco_de_dados.png", "Diagrama entidade-relacionamento (modelo físico)", { largura: 470 }),
-  H2("Apêndice C — Estrutura do projeto"),
+  H2("APÊNDICE C – ESTRUTURA DO PROJETO"),
   ...codigo([
     "projeto-da-loca-o-de-carros/",
     "├── manage.py",
@@ -811,10 +876,10 @@ const apendices = [
     "└── docs/",
     "    ├── diagramas/            *.mmd e *.png",
     "    ├── prototipos/           baixa_*.png e alta_*.png",
-    "    ├── fonte/                gerar_documentacao.js",
+    "    ├── fonte/                gerar_documentacao.js · atualizar_sumario.py",
     "    └── Documentacao_Final.docx",
   ]),
-  H2("Apêndice D — Execução em ambiente de desenvolvimento"),
+  H2("APÊNDICE D – EXECUÇÃO EM AMBIENTE DE DESENVOLVIMENTO"),
   P("Pré-requisitos: Python 3.12 ou superior e Git."),
   ...codigo([
     "git clone https://github.com/bruno011203/projeto-da-loca-o-de-carros.git",
@@ -831,7 +896,7 @@ const apendices = [
     ["atendente", "locadora123", "ATENDENTE", "Sistema"],
   ], [1.2, 1.4, 1.4, 3]),
   P("Os dados de exemplo incluem 4 categorias, 10 veículos (1 em manutenção), 5 clientes — entre eles um com 20 anos (para demonstrar RN01) e um com CNH categoria A (RN02) —, uma locação finalizada que reproduz o exemplo numérico (R$ 690,00), uma locação em andamento, uma atrasada e duas reservas futuras."),
-  H2("Apêndice E — Matriz de rastreabilidade"),
+  H2("APÊNDICE E – MATRIZ DE RASTREABILIDADE"),
   ...tabela("Requisito → caso de uso → regra → teste", ["Requisito", "Caso de uso", "Regras", "Testes"], [
     ["RF02, RF03", "UC01", "RN05, RN07", "test_rn05_rn07_busca_ignora_manutencao_inativo_e_reservados"],
     ["RF04, RF16", "UC02", "RN01, RN02, RN03", "test_rn01_*, test_rn02_*, test_rn03_*, test_cadastro_de_cliente_valida_cpf"],
@@ -841,7 +906,7 @@ const apendices = [
     ["RF11, RF12, RF13", "UC05", "RN16–RN19", "test_exemplo_do_documento_e_rn18_sem_avaria, test_rn18_avaria_*, test_rn16_*, test_rn19_*, test_atrasada_por_tempo"],
     ["RF01, RF14, RF15", "—", "—", "test_login_obrigatorio, test_paginas_carregam, test_ciclo_completo_pela_interface"],
   ], [1.4, 1, 1.6, 4]),
-  H2("Apêndice F — Registro de defeitos encontrados nos testes"),
+  H2("APÊNDICE F – REGISTRO DE DEFEITOS ENCONTRADOS NOS TESTES"),
   P("Defeitos encontrados nos testes exploratórios e de sistema, todos corrigidos e protegidos por teste de regressão (o teste falha no código antigo e passa no corrigido)."),
   ...tabela("Defeitos encontrados e corrigidos", ["#", "Defeito", "Correção", "Teste de regressão"], [
     ["D1", "Erro 500 ao abrir a tela de nova reserva com identificador de veículo inválido na URL", "A tela volta para a busca de disponibilidade", "test_reserva_com_parametros_invalidos_volta_para_a_busca"],
@@ -851,9 +916,20 @@ const apendices = [
     ["D5", "Cliente podia ser cadastrado com data de nascimento no futuro", "Validação de data de nascimento no passado", "test_cliente_com_cpf_formatado_e_nascimento_futuro"],
     ["D6", "Busca aceitava período no passado ou maior que 30 dias, e o erro só aparecia ao confirmar a reserva; no admin, CPF com pontuação e placa com hífen eram recusados e o status LOCADO podia ser definido à mão", "Busca aplica RN08, RN09 e RN10; o admin usa os mesmos formulários das telas", "test_busca_aplica_rn08_rn09_rn10, test_admin_usa_as_mesmas_validacoes"],
   ], [0.5, 3.2, 2.4, 2.4]),
+  H2("APÊNDICE G – HISTÓRICO DE VERSÕES"),
+  ...tabela("Histórico de versões do documento", ["Versão", "Data", "Autor", "Descrição"], [
+    ["0.1", "05/10/2026", AUTOR, "Visão geral, problemática, requisitos e protótipo de baixa fidelidade."],
+    ["0.2", "10/10/2026", AUTOR, "Modelo de domínio, regras de negócio, casos de uso, diagramas e ADRs."],
+    ["0.3", "15/10/2026", AUTOR, "Stack, ambiente de desenvolvimento e divisão do trabalho em 9 pacotes (seção 5.3)."],
+    ["1.0", "25/10/2026", AUTOR, "Implementação concluída (UC01–UC05) e estratégia de testes."],
+    ["1.1", "28/10/2026", AUTOR, "Rodada de testes exploratórios e de sistema; 6 defeitos corrigidos; 83 testes e 99% de cobertura."],
+    ["1.2", "31/10/2026", AUTOR, "Integrantes, padrão ABNT (capa, folha de rosto, resumo, abstract e sumário), cronograma de 30 dias e revisão final."],
+  ], [1, 1.4, 2.6, 5]),
 ];
 
 // --------------------------------------------------------------------------- documento
+
+const paginas = fs.existsSync(ARQUIVO_PAGINAS) ? JSON.parse(fs.readFileSync(ARQUIVO_PAGINAS, "utf8")) : {};
 
 const doc = new Document({
   creator: AUTOR,
@@ -863,13 +939,13 @@ const doc = new Document({
     default: { document: { run: { font: FONTE, size: 24 } } },
     paragraphStyles: [
       { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 30, bold: true, font: FONTE, color: COR_TITULO },
+        run: { size: 24, bold: true, allCaps: true, font: FONTE, color: COR_TITULO },
         paragraph: { spacing: { before: 240, after: 240 }, outlineLevel: 0 } },
       { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 26, bold: true, font: FONTE, color: COR_TITULO },
+        run: { size: 24, bold: true, font: FONTE, color: COR_TITULO },
         paragraph: { spacing: { before: 300, after: 160 }, outlineLevel: 1, keepNext: true } },
       { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 24, bold: true, font: FONTE, color: "2F5496" },
+        run: { size: 24, bold: true, font: FONTE, color: COR_TITULO },
         paragraph: { spacing: { before: 220, after: 120 }, outlineLevel: 2, keepNext: true } },
     ],
   },
@@ -887,14 +963,18 @@ const doc = new Document({
         alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 360 } } } }] },
     ],
   },
-  features: { updateFields: true },
   sections: [
+    // Capa: não é contada nem numerada.
     { properties: { page: { size: PAGINA, margin: MARGEM } }, children: capa },
+    // Pré-textuais: contados a partir da folha de rosto (página 1), mas sem número impresso.
+    { properties: { page: { size: PAGINA, margin: MARGEM, pageNumbers: { start: 1 } } },
+      children: [...folhaDeRosto, ...resumo, ...abstract, ...montarSumario(paginas)] },
+    // Textuais e pós-textuais: número no canto superior direito, continuando a contagem.
     {
       properties: { page: { size: PAGINA, margin: MARGEM } },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT,
+      headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT,
         children: [new TextRun({ children: [PageNumber.CURRENT], size: 20 })] })] }) },
-      children: [...historico, ...visaoGeral, ...arquitetura, ...especificacao, ...navegador,
+      children: [...visaoGeral, ...arquitetura, ...especificacao, ...navegador,
         ...desenvolvimento, ...testes, ...referencias, ...apendices],
     },
   ],
@@ -902,5 +982,6 @@ const doc = new Document({
 
 Packer.toBuffer(doc).then((buf) => {
   fs.writeFileSync(SAIDA, buf);
+  fs.writeFileSync(path.join(__dirname, "sumario_titulos.json"), JSON.stringify(TITULOS, null, 1));
   console.log(`Gerado ${SAIDA} (${numeroFigura} figuras, ${numeroTabela} tabelas)`);
 });
