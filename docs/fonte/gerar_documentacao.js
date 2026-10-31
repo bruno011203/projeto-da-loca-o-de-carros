@@ -7,7 +7,7 @@
 const fs = require("fs");
 const path = require("path");
 const {
-  AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, LevelFormat, Packer,
+  AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LevelFormat, Packer,
   PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
 } = require("docx");
 
@@ -166,37 +166,38 @@ const autores = (depois) => NOMES_EM_ORDEM_ALFABETICA.map((nome, i, lista) =>
 const tituloESubtitulo = (depois) => [
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: depois, line: 360 }, children: [
     new TextRun({ text: TITULO.toUpperCase() + ": ", bold: true, size: 24 }),
-    new TextRun({ text: SUBTITULO, size: 24 }),
+    new TextRun({ text: SUBTITULO.toUpperCase(), size: 24 }),
   ] }),
 ];
 
 // Capa (NBR 14724): instituição, autores, título: subtítulo, local e ano.
+// Local e ano ficam no rodapé da página: assim nunca pulam para a página seguinte,
+// qualquer que seja o programa (Word, LibreOffice, Google Docs).
+const rodapeLocalEAno = () => ({ default: new Footer({ children: [linha(LOCAL), linha(ANO)] }) });
+
 const capa = [
   linha(INSTITUICAO.toUpperCase(), 0, { bold: true }),
-  linha(CURSOS.toUpperCase(), 2600, { bold: true }),
-  ...autores(3000),
-  ...tituloESubtitulo(4300),
-  linha(LOCAL),
-  linha(ANO),
+  linha(CURSOS.toUpperCase(), 2400, { bold: true }),
+  ...autores(2800),
+  ...tituloESubtitulo(0),
 ];
 
-// Folha de rosto: autores, título: subtítulo, natureza do trabalho (recuada 8 cm), local e ano.
+// Folha de rosto: título: subtítulo e natureza do trabalho (recuada 8 cm); local e ano no rodapé.
+// Os autores aparecem só na capa, a pedido do grupo.
 const folhaDeRosto = [
-  ...autores(3200),
+  linha(" ", 4800),   // empurra o título para o meio da página (espaço "antes" é ignorado no topo)
   ...tituloESubtitulo(1200),
   new Paragraph({ indent: { left: 4536 }, alignment: AlignmentType.JUSTIFIED, spacing: { after: 240, line: 240 },
     children: [new TextRun({ size: 20, text: `Documentação de projeto de software apresentada aos cursos de ${CURSOS} da ${INSTITUICAO}, como requisito parcial de avaliação.` })] }),
-  new Paragraph({ indent: { left: 4536 }, spacing: { after: 3600, line: 240 },
+  new Paragraph({ indent: { left: 4536 }, spacing: { line: 240 },
     children: [new TextRun({ size: 20, text: `Professor: ${PROFESSOR}.` })] }),
-  linha(LOCAL),
-  linha(ANO),
 ];
 
 // Resumo e abstract (NBR 6028): parágrafo único, espaçamento simples, seguido das palavras-chave.
-const tituloPreTextual = (texto) => new Paragraph({ pageBreakBefore: true, alignment: AlignmentType.CENTER,
+const tituloPreTextual = (texto, novaPagina = true) => new Paragraph({ pageBreakBefore: novaPagina, alignment: AlignmentType.CENTER,
   spacing: { after: 480 }, children: [new TextRun({ text: texto, bold: true, size: 24 })] });
-const resumoEm = (titulo, texto, rotulo, palavras) => [
-  tituloPreTextual(titulo),
+const resumoEm = (titulo, texto, rotulo, palavras, novaPagina = true) => [
+  tituloPreTextual(titulo, novaPagina),
   new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 360, line: 240 },
     children: [new TextRun({ text: texto, size: 24 })] }),
   new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { line: 240 }, children: [
@@ -204,7 +205,8 @@ const resumoEm = (titulo, texto, rotulo, palavras) => [
 ];
 const resumo = resumoEm("RESUMO",
   "Este trabalho apresenta o projeto e a implementação de um sistema web de gestão para uma locadora de veículos, desenvolvido por uma equipe de nove integrantes em 30 dias. O sistema controla o ciclo completo de uma locação: consulta de disponibilidade, reserva, retirada e devolução do veículo, com apuração automática de diárias, multa por atraso e taxa de combustível. A solução foi construída em Python com o framework Django 5.2, banco de dados SQLite e interface em Bootstrap 5, em uma arquitetura em camadas na qual as dezenove regras de negócio e as cinco fórmulas de cálculo foram isoladas em funções puras. A modelagem do domínio resultou em sete entidades e cinco casos de uso, documentados com diagramas de classes, de casos de uso, de sequência e de estados, e as principais escolhas técnicas foram registradas como decisões arquiteturais. O trabalho foi dividido em nove pacotes, organizados em três equipes. A qualidade foi verificada por 83 testes automatizados, com 99% de cobertura de código, e por um teste de sistema no navegador, que reproduziu o exemplo numérico de referência e permitiu encontrar e corrigir seis defeitos antes da entrega.",
-  "Palavras-chave", "Locadora de veículos. Django. Regras de negócio. Testes automatizados. Engenharia de software.");
+  "Palavras-chave", "Locadora de veículos. Django. Regras de negócio. Testes automatizados. Engenharia de software.",
+  false);   // começa uma seção nova, que já abre página
 const abstract = resumoEm("ABSTRACT",
   "This work presents the design and implementation of a web-based management system for a car rental company, developed by a team of nine members in 30 days. The system handles the complete rental cycle: availability search, reservation, vehicle pickup and return, with automatic calculation of daily rates, late fees and fuel charges. The solution was built in Python with the Django 5.2 framework, an SQLite database and a Bootstrap 5 interface, in a layered architecture in which the nineteen business rules and the five calculation formulas were isolated as pure functions. Domain modeling resulted in seven entities and five use cases, documented with class, use case, sequence and state diagrams, and the main technical choices were recorded as architecture decisions. The work was divided into nine packages, organized into three teams. Quality was verified by 83 automated tests, with 99% code coverage, and by a system test in the browser, which reproduced the reference numerical example and made it possible to find and fix six defects before delivery.",
   "Keywords", "Car rental. Django. Business rules. Automated testing. Software engineering.");
@@ -964,11 +966,17 @@ const doc = new Document({
     ],
   },
   sections: [
-    // Capa: não é contada nem numerada.
-    { properties: { page: { size: PAGINA, margin: MARGEM } }, children: capa },
-    // Pré-textuais: contados a partir da folha de rosto (página 1), mas sem número impresso.
+    // Capa: não é contada nem numerada; local e ano no rodapé.
+    { properties: { page: { size: PAGINA, margin: MARGEM } }, footers: rodapeLocalEAno(), children: capa },
+    // Folha de rosto: página 1 da contagem (sem número impresso); local e ano no rodapé.
     { properties: { page: { size: PAGINA, margin: MARGEM, pageNumbers: { start: 1 } } },
-      children: [...folhaDeRosto, ...resumo, ...abstract, ...montarSumario(paginas)] },
+      footers: rodapeLocalEAno(), children: folhaDeRosto },
+    // Demais pré-textuais: continuam a contagem, sem número impresso.
+    // Rodapé e cabeçalho vazios: sem isso o Word repetiria "São Paulo / 2026" da seção anterior.
+    { properties: { page: { size: PAGINA, margin: MARGEM } },
+      headers: { default: new Header({ children: [new Paragraph({ children: [] })] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ children: [] })] }) },
+      children: [...resumo, ...abstract, ...montarSumario(paginas)] },
     // Textuais e pós-textuais: número no canto superior direito, continuando a contagem.
     {
       properties: { page: { size: PAGINA, margin: MARGEM } },
